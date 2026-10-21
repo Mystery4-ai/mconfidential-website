@@ -1,21 +1,30 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, MessageCircle } from "lucide-react";
-import { getPropertyBySlug, getSimilarProperties } from "@/lib/properties";
+import { getPropertyBySlug, getPropertyBySlugForPreview, getSimilarProperties } from "@/lib/properties";
 import { formatPrice, formatSurface, propertyTypeLabels, transactionTypeLabels } from "@/lib/labels";
 import { Container } from "@/components/layout/container";
 import { Gallery } from "@/components/property/gallery";
 import { PropertyCard } from "@/components/property/property-card";
 import { VisitForm } from "@/components/property/visit-form";
 import { MobileContactBar } from "@/components/property/mobile-contact-bar";
-import { AvailabilityBadge } from "@/components/ui/status-badge";
+import { AvailabilityBadge, PropertyStatusBadge } from "@/components/ui/status-badge";
+import { auth } from "@/auth";
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const { preview } = await searchParams;
+
+  if (preview === "1") {
+    return { robots: { index: false, follow: false } };
+  }
+
   const property = await getPropertyBySlug(slug);
   if (!property) return {};
 
@@ -36,12 +45,30 @@ export async function generateMetadata({
 
 export default async function PropertyDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   const { slug } = await params;
-  const property = await getPropertyBySlug(slug);
-  if (!property) notFound();
+  const { preview } = await searchParams;
+
+  let property;
+  let isPreview = false;
+
+  if (preview === "1") {
+    const session = await auth();
+    if (!session?.user) notFound();
+    const candidate = await getPropertyBySlugForPreview(slug);
+    if (!candidate) notFound();
+    const owns = session.user.role === "ADMIN" || candidate.consultantId === session.user.id;
+    if (!owns) notFound();
+    property = candidate;
+    isPreview = true;
+  } else {
+    property = await getPropertyBySlug(slug);
+    if (!property) notFound();
+  }
 
   const similar = await getSimilarProperties(property);
 
@@ -90,6 +117,12 @@ export default async function PropertyDetailPage({
 
   return (
     <>
+      {isPreview && (
+        <div className="sticky top-[73px] z-20 flex items-center justify-center gap-3 bg-status-pending px-4 py-2 text-sm text-ivory">
+          <span>Aperçu privé — ce bien n’est pas visible publiquement.</span>
+          <PropertyStatusBadge status={property.status} />
+        </div>
+      )}
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger

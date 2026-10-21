@@ -90,15 +90,25 @@ export async function getFeaturedProperties(limit = 6) {
   return [...items, ...extra].map((p) => ({ ...p, coverImage: p.images[0] ?? null }));
 }
 
+const propertyDetailInclude = {
+  images: { orderBy: { position: "asc" as const } },
+  consultant: {
+    select: { id: true, name: true, phone: true, whatsapp: true, title: true, photoUrl: true, email: true },
+  },
+};
+
 export async function getPropertyBySlug(slug: string) {
   return db.property.findFirst({
     where: { slug, status: "PUBLISHED" },
-    include: {
-      images: { orderBy: { position: "asc" } },
-      consultant: {
-        select: { id: true, name: true, phone: true, whatsapp: true, title: true, photoUrl: true, email: true },
-      },
-    },
+    include: propertyDetailInclude,
+  });
+}
+
+/** Unfiltered by status — only call behind an auth + ownership check (admin preview). */
+export async function getPropertyBySlugForPreview(slug: string) {
+  return db.property.findFirst({
+    where: { slug },
+    include: propertyDetailInclude,
   });
 }
 
