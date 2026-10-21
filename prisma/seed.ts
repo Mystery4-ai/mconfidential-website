@@ -16,6 +16,27 @@ import bcrypt from "bcryptjs";
 import slugify from "slugify";
 import seedProperties from "./seed-data/seed-properties.json";
 
+type SeedImage = { url: string; alt?: string; title?: string };
+type SeedProperty = {
+  title: string;
+  slug: string;
+  description: string;
+  transactionType: string;
+  availability: string;
+  featured: boolean;
+  propertyType: string;
+  price: number;
+  city: string;
+  neighborhood: string | null;
+  surfaceArea: number | null;
+  landArea: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  parkingSpaces: number | null;
+  features: string[];
+  images: SeedImage[];
+};
+
 const db = new PrismaClient();
 
 async function main() {
@@ -47,7 +68,7 @@ async function main() {
   });
 
   const adminPassword = await bcrypt.hash("ChangeMe123!", 10);
-  const admin = await db.user.upsert({
+  await db.user.upsert({
     where: { email: "admin@mconfidential.ma" },
     create: {
       name: "Administrateur (à renommer)",
@@ -78,7 +99,7 @@ async function main() {
   console.log("  -> change these passwords immediately after first login.");
 
   let refCounter = 1;
-  for (const p of seedProperties as any[]) {
+  for (const p of seedProperties as SeedProperty[]) {
     const reference = `MC-${String(refCounter).padStart(5, "0")}`;
     refCounter += 1;
 
@@ -112,7 +133,7 @@ async function main() {
         consultantId: consultant.id,
         publishedAt: new Date(),
         images: {
-          create: (p.images || []).map((img: any, index: number) => ({
+          create: (p.images || []).map((img: SeedImage, index: number) => ({
             url: img.url,
             altText: img.alt?.trim() || `${p.title} – photo ${index + 1}`,
             position: index,

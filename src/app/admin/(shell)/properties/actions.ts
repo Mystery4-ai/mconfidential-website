@@ -19,17 +19,20 @@ function parseFeatures(raw: string | undefined): string[] {
 }
 
 function extractFormValues(formData: FormData) {
+  // formData.get() returns null for absent fields (e.g. consultantId, which
+  // only admins see); zod's .optional() only accepts undefined, not null.
+  const str = (key: string) => formData.get(key) ?? undefined;
   return {
-    title: formData.get("title"),
-    description: formData.get("description"),
-    transactionType: formData.get("transactionType"),
-    propertyType: formData.get("propertyType"),
-    price: formData.get("price"),
-    city: formData.get("city"),
-    neighborhood: formData.get("neighborhood"),
-    address: formData.get("address"),
-    features: formData.get("features"),
-    consultantId: formData.get("consultantId"),
+    title: str("title"),
+    description: str("description"),
+    transactionType: str("transactionType"),
+    propertyType: str("propertyType"),
+    price: str("price"),
+    city: str("city"),
+    neighborhood: str("neighborhood"),
+    address: str("address"),
+    features: str("features"),
+    consultantId: str("consultantId"),
   };
 }
 

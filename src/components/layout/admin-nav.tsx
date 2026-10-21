@@ -4,13 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 
-const baseLinks = [
+type NavLink = { href: string; label: string; exact?: boolean };
+
+const baseLinks: NavLink[] = [
   { href: "/admin", label: "Tableau de bord", exact: true },
   { href: "/admin/properties", label: "Biens" },
   { href: "/admin/inquiries", label: "Demandes" },
 ];
 
-const adminOnlyLinks = [
+const adminOnlyLinks: NavLink[] = [
   { href: "/admin/consultants", label: "Consultants" },
   { href: "/admin/settings", label: "Paramètres" },
 ];

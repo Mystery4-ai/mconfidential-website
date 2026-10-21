@@ -21,7 +21,7 @@ export default async function AdminDashboardPage() {
     <div className="p-6 md:p-10">
       <h1 className="font-serif text-2xl">Tableau de bord</h1>
       <p className="mt-1 text-sm text-charcoal-soft">
-        Bienvenue, {user.name.split(" ")[0]}.
+        Bienvenue, {(user.name ?? "").split(" ")[0]}.
       </p>
 
       <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
