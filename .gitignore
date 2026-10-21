@@ -44,3 +44,7 @@ next-env.d.ts
 
 # user-uploaded property images (local dev storage)
 /public/uploads
+
+# local SQLite dev database (reproducible via `npx prisma migrate dev && npx prisma db seed`)
+/prisma/dev.db
+/prisma/dev.db-journal
