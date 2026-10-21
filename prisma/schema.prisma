@@ -1,0 +1,195 @@
+// Prisma schema for M. Confidential
+// Local dev uses SQLite (zero setup). For production, point DATABASE_URL at
+// a managed Postgres instance (e.g. Vercel Postgres/Neon) and change the
+// datasource provider to "postgresql" — the models below are Postgres-safe.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CONSULTANT
+}
+
+enum TransactionType {
+  SALE
+  RENT
+}
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  VILLA
+  RIAD
+  LAND
+  OFFICE
+  COMMERCIAL
+  BUILDING
+}
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_APPROVAL
+  PUBLISHED
+  UNPUBLISHED
+  ARCHIVED
+}
+
+enum Availability {
+  AVAILABLE
+  UNDER_OFFER
+  SOLD
+  RENTED
+}
+
+enum InquiryType {
+  CONTACT
+  VISIT
+  VALUATION
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  VISIT_PLANNED
+  COMPLETED
+  CLOSED
+  LOST
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CONSULTANT)
+  phone        String?
+  whatsapp     String?
+  title        String? // e.g. "Consultant senior"
+  bio          String?
+  photoUrl     String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  properties Property[] @relation("PropertyConsultant")
+  inquiries  Inquiry[]  @relation("InquiryConsultant")
+}
+
+model Property {
+  id        String @id @default(cuid())
+  reference String @unique
+  slug      String @unique
+
+  title       String
+  description String
+
+  transactionType TransactionType
+  propertyType    PropertyType
+  status          PropertyStatus @default(DRAFT)
+  availability    Availability   @default(AVAILABLE)
+  featured        Boolean        @default(false)
+
+  price    Int
+  currency String @default("MAD")
+
+  city        String
+  neighborhood String?
+  address     String?
+
+  surfaceArea   Int?
+  landArea      Int?
+  bedrooms      Int?
+  bathrooms     Int?
+  parkingSpaces Int?
+  yearBuilt     Int?
+
+  features Json? // string[] of feature labels
+
+  consultantId String
+  consultant   User   @relation("PropertyConsultant", fields: [consultantId], references: [id])
+
+  images Image[]
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  inquiries Inquiry[]
+
+  @@index([status, transactionType, propertyType])
+  @@index([city])
+}
+
+model Image {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  url        String
+  altText    String?
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
+}
+
+model Inquiry {
+  id   String      @id @default(cuid())
+  type InquiryType
+
+  name    String
+  email   String
+  phone   String?
+  message String?
+
+  preferredDate String?
+  preferredTime String?
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id])
+
+  assignedConsultantId String?
+  assignedConsultant   User?   @relation("InquiryConsultant", fields: [assignedConsultantId], references: [id])
+
+  status        InquiryStatus @default(NEW)
+  internalNotes String?
+
+  consentGiven Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([assignedConsultantId])
+}
+
+model AgencySettings {
+  id Int @id @default(1)
+
+  agencyName String @default("M. Confidential")
+  tagline    String?
+
+  phone    String?
+  whatsapp String?
+  email    String?
+  address  String?
+  city     String?
+
+  facebookUrl  String?
+  instagramUrl String?
+
+  heroHeadline    String?
+  heroSubheadline String?
+  aboutText       String?
+
+  seoDefaultTitle       String?
+  seoDefaultDescription String?
+
+  updatedAt DateTime @updatedAt
+}
