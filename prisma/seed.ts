@@ -33,6 +33,7 @@ async function main() {
       seoDefaultTitle: "M. Confidential – Agence immobilière à Casablanca & Dar Bouazza",
       seoDefaultDescription:
         "M. Confidential, agence immobilière premium à Casablanca et Dar Bouazza : achat, vente, location et gestion sur mesure de biens haut de gamme",
+      facebookUrl: "https://www.facebook.com/mconfidential",
       // Not publicly available on the live site — fill in via /admin/settings.
       phone: null,
       whatsapp: null,
@@ -40,7 +41,9 @@ async function main() {
       address: null,
       city: "Casablanca",
     },
-    update: {},
+    update: {
+      facebookUrl: "https://www.facebook.com/mconfidential",
+    },
   });
 
   const adminPassword = await bcrypt.hash("ChangeMe123!", 10);
@@ -111,7 +114,7 @@ async function main() {
         images: {
           create: (p.images || []).map((img: any, index: number) => ({
             url: img.url,
-            altText: img.alt || img.title || `${p.title} – photo ${index + 1}`,
+            altText: img.alt?.trim() || `${p.title} – photo ${index + 1}`,
             position: index,
           })),
         },
