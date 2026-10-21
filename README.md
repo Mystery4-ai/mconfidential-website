@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# M. Confidential — website & backoffice
 
-## Getting Started
+Premium real estate marketing site and backoffice for M. Confidential (Casablanca &
+Dar Bouazza), rebuilt from scratch in Next.js 16 (App Router, TypeScript), Tailwind
+CSS v4, Prisma, and Auth.js.
 
-First, run the development server:
+## Stack
+
+- **Framework**: Next.js 16 (App Router, Server Actions, Turbopack)
+- **Styling**: Tailwind CSS v4, custom design tokens (ivory/charcoal/olive palette, Fraunces + Inter)
+- **Database**: Prisma ORM 6, SQLite for local dev (`prisma/dev.db`), Postgres-ready for production
+- **Auth**: Auth.js (NextAuth v5) with credentials + JWT sessions, role-based access control (ADMIN / CONSULTANT)
+- **Images**: local filesystem storage under `public/uploads/properties` (see `src/lib/storage.ts`)
+
+## Getting started
 
 ```bash
+npm install
+npx prisma migrate dev   # creates prisma/dev.db and applies the schema
+npx prisma db seed       # seeds agency settings, a demo admin + consultant, and 20 real listings
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. Backoffice is at `/admin` (redirects to `/admin/login`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Seeded dev credentials (change immediately in a real deployment):
+- `admin@mconfidential.ma` / `ChangeMe123!`
+- `consultant@mconfidential.ma` / `ChangeMe123!`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## What's real vs. placeholder
 
-## Learn More
+The 20 property listings, their prices, descriptions, photos, and the agency's "About"
+copy were imported from the live mconfidential.ma site's public WordPress REST API —
+they are genuine, not invented.
 
-To learn more about Next.js, take a look at the following resources:
+What is **not** publicly available and is left as a clearly-labeled placeholder, to be
+filled in via `/admin/settings` and `/admin/consultants`:
+- Agency phone, WhatsApp, email, and office address
+- Real consultant names/profiles (the live site's "agent" pages are unmodified Houzez
+  theme demo data — not real people — so none were imported)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The public site degrades gracefully when these are empty (e.g. it shows "Contactez-nous
+via le formulaire" instead of a fake phone number).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Production checklist
 
-## Deploy on Vercel
+Before going live, this still needs:
+1. **Database**: point `DATABASE_URL` at a managed Postgres instance (e.g. Vercel
+   Postgres/Neon) and change `prisma/schema.prisma`'s datasource `provider` to
+   `"postgresql"`.
+2. **Image storage**: for serverless/multi-instance hosting, swap
+   `src/lib/storage.ts` for an object storage adapter (Vercel Blob, S3) — it's the
+   only file that needs to change.
+3. **Real agency contact info and consultant accounts**, added via the backoffice.
+4. **`AUTH_SECRET`**: generate a fresh one for production (see `.env.example`) and
+   store it in your host's secret manager.
+5. **`NEXT_PUBLIC_SITE_URL`**: set to the real production domain (used by metadata,
+   sitemap.xml, robots.txt).
+6. Review and change the seeded admin/consultant passwords.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/app/(public)/` — public site (homepage, listings, property pages, editorial pages)
+- `src/app/admin/` — backoffice (auth-gated dashboard, property/consultant/inquiry management)
+- `src/lib/` — data access, auth helpers, formatting/labels, storage adapter
+- `prisma/schema.prisma` — data model; `prisma/seed.ts` — seed script
