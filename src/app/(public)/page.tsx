@@ -1,11 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getFeaturedProperties, getDistinctCities } from "@/lib/properties";
 import { getAgencySettings } from "@/lib/settings";
 import { PropertyCard } from "@/components/property/property-card";
 import { Container } from "@/components/layout/container";
 import { LinkButton } from "@/components/ui/button";
 import { HomeSearchForm } from "@/components/property/home-search-form";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const [settings, featured, cities] = await Promise.all([
@@ -16,8 +21,24 @@ export default async function HomePage() {
 
   const heroImage = featured[0]?.coverImage;
 
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    name: settings.agencyName,
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma",
+    areaServed: "Casablanca, Maroc",
+    ...(settings.phone ? { telephone: settings.phone } : {}),
+    ...(settings.email ? { email: settings.email } : {}),
+    ...(settings.address ? { address: { "@type": "PostalAddress", streetAddress: settings.address } } : {}),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
       <section className="relative flex min-h-[78vh] items-end overflow-hidden bg-charcoal text-ivory">
         {heroImage && (
           <Image

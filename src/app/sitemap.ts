@@ -1,0 +1,41 @@
+import type { MetadataRoute } from "next";
+import { db } from "@/lib/db";
+import { getDistinctCities } from "@/lib/properties";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [properties, cities] = await Promise.all([
+    db.property.findMany({
+      where: { status: "PUBLISHED" },
+      select: { slug: true, updatedAt: true },
+    }),
+    getDistinctCities(),
+  ]);
+
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/`, changeFrequency: "daily", priority: 1 },
+    { url: `${SITE_URL}/biens`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE_URL}/agence`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE_URL}/contact`, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${SITE_URL}/estimation`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE_URL}/guides`, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${SITE_URL}/guides/acheter-au-maroc`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/guides/louer-au-maroc`, changeFrequency: "yearly", priority: 0.3 },
+  ];
+
+  const cityPages: MetadataRoute.Sitemap = cities.map((city) => ({
+    url: `${SITE_URL}/villes/${encodeURIComponent(city)}`,
+    changeFrequency: "daily",
+    priority: 0.7,
+  }));
+
+  const propertyPages: MetadataRoute.Sitemap = properties.map((p) => ({
+    url: `${SITE_URL}/biens/${p.slug}`,
+    lastModified: p.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...cityPages, ...propertyPages];
+}

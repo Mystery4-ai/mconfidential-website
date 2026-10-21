@@ -1,7 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth-helpers";
 import { AdminNav } from "@/components/layout/admin-nav";
 import { LogoutButton } from "@/components/layout/logout-button";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminShellLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();

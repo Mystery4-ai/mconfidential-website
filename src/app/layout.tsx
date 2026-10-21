@@ -16,13 +16,21 @@ const inter = Inter({
   weight: ["400", "500", "600"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "M. Confidential — Agence immobilière à Casablanca & Dar Bouazza",
     template: "%s | M. Confidential",
   },
   description:
     "M. Confidential, agence immobilière premium à Casablanca et Dar Bouazza : achat, vente, location et gestion sur mesure de biens haut de gamme",
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "M. Confidential",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // The previous WordPress site served listings at /property/{slug}/.
+      // Migrated listings keep the same slug under the new /biens/ path.
+      {
+        source: "/property/:slug",
+        destination: "/biens/:slug",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
