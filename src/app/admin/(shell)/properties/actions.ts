@@ -72,6 +72,7 @@ export async function createProperty(
       features: parseFeatures(parsed.data.features),
       consultantId,
       status: "DRAFT",
+      featured: user.role === "ADMIN" && formData.get("featured") === "on",
     },
   });
 
@@ -115,6 +116,7 @@ export async function updateProperty(
       yearBuilt: numOrUndefined(formData.get("yearBuilt")),
       features: parseFeatures(parsed.data.features),
       consultantId,
+      ...(user.role === "ADMIN" ? { featured: formData.get("featured") === "on" } : {}),
     },
   });
 

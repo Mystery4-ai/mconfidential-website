@@ -25,6 +25,7 @@ export type PropertyInitialValues = {
   yearBuilt: number | null;
   features: string[] | null;
   consultantId: string;
+  featured?: boolean;
 };
 
 export function PropertyForm({
@@ -178,6 +179,14 @@ export function PropertyForm({
               ))}
             </Select>
           </div>
+          <label className="mt-4 flex items-center gap-2 text-sm text-charcoal">
+            <input
+              type="checkbox"
+              name="featured"
+              defaultChecked={initialValues?.featured ?? false}
+            />
+            Mettre en avant sur la page d’accueil
+          </label>
         </section>
       )}
 
