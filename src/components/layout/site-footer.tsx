@@ -9,12 +9,18 @@ type FooterSettings = {
   facebookUrl?: string | null;
 };
 
-export function SiteFooter({ settings }: { settings: FooterSettings }) {
+export function SiteFooter({
+  settings,
+  cities = [],
+}: {
+  settings: FooterSettings;
+  cities?: string[];
+}) {
   const year = new Date().getFullYear();
 
   return (
     <footer className="mt-24 border-t border-border bg-ivory-dim">
-      <Container className="grid gap-10 py-14 md:grid-cols-4">
+      <Container className="grid gap-10 py-14 sm:grid-cols-2 md:grid-cols-5">
         <div>
           <p className="font-serif text-lg text-charcoal">M. Confidential</p>
           <p className="mt-3 text-sm leading-relaxed text-charcoal-soft">
@@ -40,6 +46,24 @@ export function SiteFooter({ settings }: { settings: FooterSettings }) {
             <li><Link href="/estimation" className="text-charcoal-soft hover:text-charcoal">Estimer un bien</Link></li>
           </ul>
         </div>
+
+        {cities.length > 0 && (
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">Villes</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {cities.map((city) => (
+                <li key={city}>
+                  <Link
+                    href={`/villes/${encodeURIComponent(city)}`}
+                    className="text-charcoal-soft hover:text-charcoal"
+                  >
+                    Immobilier à {city}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">Agence</p>
