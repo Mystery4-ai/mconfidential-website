@@ -1,13 +1,5 @@
 import { propertyTypeLabels } from "@/lib/labels";
-
-const budgetOptions = [
-  { label: "Budget max", value: "" },
-  { label: "1 000 000 DH", value: "1000000" },
-  { label: "3 000 000 DH", value: "3000000" },
-  { label: "5 000 000 DH", value: "5000000" },
-  { label: "10 000 000 DH", value: "10000000" },
-  { label: "20 000 000 DH", value: "20000000" },
-];
+import { BudgetFilter } from "./budget-filter";
 
 export function HomeSearchForm({ cities }: { cities: string[] }) {
   const fieldClass =
@@ -52,16 +44,7 @@ export function HomeSearchForm({ cities }: { cities: string[] }) {
         </select>
       </div>
 
-      <div>
-        <label htmlFor="maxPrice" className="sr-only">Budget</label>
-        <select id="maxPrice" name="maxPrice" className={fieldClass} defaultValue="">
-          {budgetOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <BudgetFilter />
 
       <button
         type="submit"

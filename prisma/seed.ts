@@ -55,6 +55,7 @@ async function main() {
       seoDefaultDescription:
         "M. Confidential, agence immobilière premium à Casablanca et Dar Bouazza : achat, vente, location et gestion sur mesure de biens haut de gamme",
       facebookUrl: "https://www.facebook.com/mconfidential",
+      instagramUrl: "https://www.instagram.com/m.confidential_real_estate/",
       // Not publicly available on the live site — fill in via /admin/settings.
       phone: null,
       whatsapp: null,
@@ -64,6 +65,7 @@ async function main() {
     },
     update: {
       facebookUrl: "https://www.facebook.com/mconfidential",
+      instagramUrl: "https://www.instagram.com/m.confidential_real_estate/",
     },
   });
 

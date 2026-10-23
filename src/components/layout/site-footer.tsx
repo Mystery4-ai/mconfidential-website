@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Container } from "./container";
+import { Logo } from "./logo";
+import { FacebookIcon, InstagramIcon } from "@/components/ui/social-icons";
 
 type FooterSettings = {
   phone?: string | null;
@@ -7,6 +9,7 @@ type FooterSettings = {
   address?: string | null;
   city?: string | null;
   facebookUrl?: string | null;
+  instagramUrl?: string | null;
 };
 
 export function SiteFooter({
@@ -22,19 +25,37 @@ export function SiteFooter({
     <footer className="mt-24 border-t border-border bg-ivory-dim">
       <Container className="grid gap-10 py-14 sm:grid-cols-2 md:grid-cols-5">
         <div>
-          <p className="font-serif text-lg text-charcoal">M. Confidential</p>
-          <p className="mt-3 text-sm leading-relaxed text-charcoal-soft">
-            Agence immobilière à Casablanca &amp; Dar Bouazza.
+          <Link href="/" className="text-charcoal">
+            <Logo />
+          </Link>
+          <p className="mt-4 text-sm leading-relaxed text-charcoal-soft">
+            Agence immobilière Maroc — Casablanca &amp; Dar Bouazza.
           </p>
-          {settings.facebookUrl && (
-            <a
-              href={settings.facebookUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-block text-sm text-charcoal-soft underline underline-offset-4 hover:text-charcoal"
-            >
-              Facebook
-            </a>
+          {(settings.facebookUrl || settings.instagramUrl) && (
+            <div className="mt-4 flex items-center gap-3">
+              {settings.facebookUrl && (
+                <a
+                  href={settings.facebookUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="M. Confidential sur Facebook"
+                  className="text-charcoal-soft transition-colors hover:text-charcoal"
+                >
+                  <FacebookIcon size={18} />
+                </a>
+              )}
+              {settings.instagramUrl && (
+                <a
+                  href={settings.instagramUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="M. Confidential sur Instagram"
+                  className="text-charcoal-soft transition-colors hover:text-charcoal"
+                >
+                  <InstagramIcon size={18} />
+                </a>
+              )}
+            </div>
           )}
         </div>
 
@@ -92,9 +113,16 @@ export function SiteFooter({
       </Container>
 
       <div className="border-t border-border py-6">
-        <Container className="flex flex-col items-center justify-between gap-2 text-xs text-charcoal-soft md:flex-row">
-          <p>© {year} M. Confidential. Tous droits réservés.</p>
-          <p>Casablanca &amp; Dar Bouazza, Maroc</p>
+        <Container className="flex flex-col items-center justify-between gap-3 text-xs text-charcoal-soft md:flex-row">
+          <p>© {year} M. Confidential — Agence immobilière Maroc. Tous droits réservés.</p>
+          <div className="flex items-center gap-4">
+            <Link href="/mentions-legales" className="hover:text-charcoal">
+              Mentions légales
+            </Link>
+            <Link href="/politique-de-confidentialite" className="hover:text-charcoal">
+              Politique de confidentialité
+            </Link>
+          </div>
         </Container>
       </div>
     </footer>

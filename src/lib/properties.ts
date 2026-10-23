@@ -7,6 +7,7 @@ export type PropertySearchParams = {
   transaction?: TransactionType;
   type?: PropertyType;
   city?: string;
+  neighborhood?: string;
   minPrice?: number;
   maxPrice?: number;
   bedrooms?: number;
@@ -18,6 +19,7 @@ function buildWhere(params: PropertySearchParams): Prisma.PropertyWhereInput {
   if (params.transaction) where.transactionType = params.transaction;
   if (params.type) where.propertyType = params.type;
   if (params.city) where.city = params.city;
+  if (params.neighborhood) where.neighborhood = params.neighborhood;
   if (params.bedrooms) where.bedrooms = { gte: params.bedrooms };
   if (params.minPrice || params.maxPrice) {
     where.price = {
@@ -140,4 +142,23 @@ export async function getDistinctCities() {
     orderBy: { city: "asc" },
   });
   return rows.map((r) => r.city);
+}
+
+export async function getNeighborhoodsByCity() {
+  const rows = await db.property.findMany({
+    where: { status: "PUBLISHED", neighborhood: { not: null } },
+    select: { city: true, neighborhood: true },
+    distinct: ["city", "neighborhood"],
+    orderBy: [{ city: "asc" }, { neighborhood: "asc" }],
+  });
+
+  const grouped = new Map<string, string[]>();
+  for (const row of rows) {
+    if (!row.neighborhood) continue;
+    const list = grouped.get(row.city) ?? [];
+    list.push(row.neighborhood);
+    grouped.set(row.city, list);
+  }
+
+  return Array.from(grouped.entries()).map(([city, neighborhoods]) => ({ city, neighborhoods }));
 }

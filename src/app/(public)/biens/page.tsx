@@ -23,6 +23,7 @@ function parseParams(raw: RawParams): PropertySearchParams {
       ? (type as PropertyType)
       : undefined,
     city: str("city") || undefined,
+    neighborhood: str("neighborhood") || undefined,
     minPrice: str("minPrice") ? Number(str("minPrice")) : undefined,
     maxPrice: str("maxPrice") ? Number(str("maxPrice")) : undefined,
     bedrooms: str("bedrooms") ? Number(str("bedrooms")) : undefined,
@@ -68,6 +69,7 @@ export default async function PropertiesPage({
     if (params.transaction) qs.set("transaction", params.transaction);
     if (params.type) qs.set("type", params.type);
     if (params.city) qs.set("city", params.city);
+    if (params.neighborhood) qs.set("neighborhood", params.neighborhood);
     if (params.minPrice) qs.set("minPrice", String(params.minPrice));
     if (params.maxPrice) qs.set("maxPrice", String(params.maxPrice));
     if (params.bedrooms) qs.set("bedrooms", String(params.bedrooms));
