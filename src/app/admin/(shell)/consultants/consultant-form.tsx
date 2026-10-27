@@ -13,6 +13,7 @@ export type ConsultantInitialValues = {
   phone: string | null;
   whatsapp: string | null;
   bio: string | null;
+  schedulingUrl: string | null;
 };
 
 export function ConsultantForm({
@@ -69,6 +70,22 @@ export function ConsultantForm({
       <div>
         <Label htmlFor="bio">Bio (visible sur la page agence)</Label>
         <Textarea id="bio" name="bio" rows={3} defaultValue={initialValues?.bio ?? ""} />
+      </div>
+
+      <div>
+        <Label htmlFor="schedulingUrl">URL Cal.com / Calendly personnelle (facultatif)</Label>
+        <Input
+          id="schedulingUrl"
+          name="schedulingUrl"
+          type="url"
+          placeholder="https://cal.com/nom-du-consultant"
+          defaultValue={initialValues?.schedulingUrl ?? ""}
+        />
+        <p className="mt-1.5 text-xs text-charcoal-soft">
+          Si renseignée, remplace l’URL de l’agence sur les fiches biens de ce consultant. Laisser
+          vide pour utiliser le calendrier de l’agence (ex. un événement « Round Robin » partagé
+          entre plusieurs consultants).
+        </p>
       </div>
 
       <div>

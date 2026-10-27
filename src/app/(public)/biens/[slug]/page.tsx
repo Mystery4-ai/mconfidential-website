@@ -4,14 +4,21 @@ import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, MessageCir
 import { getPropertyBySlug, getPropertyBySlugForPreview, getSimilarProperties } from "@/lib/properties";
 import { getAgencySettings } from "@/lib/settings";
 import { formatPrice, formatSurface, propertyTypeLabels, transactionTypeLabels } from "@/lib/labels";
+import { buildPropertyWhatsAppLink } from "@/lib/whatsapp";
+import { neighborhoodDescriptions } from "@/lib/neighborhood-content";
 import { Container } from "@/components/layout/container";
 import { Gallery } from "@/components/property/gallery";
 import { PropertyCard } from "@/components/property/property-card";
 import { VisitForm } from "@/components/property/visit-form";
 import { SchedulingEmbed } from "@/components/property/scheduling-embed";
 import { MobileContactBar } from "@/components/property/mobile-contact-bar";
+import { ShareButton } from "@/components/property/share-button";
+import { NeighborhoodMap } from "@/components/property/neighborhood-map";
+import { Breadcrumbs, breadcrumbJsonLd } from "@/components/ui/breadcrumbs";
 import { AvailabilityBadge, PropertyStatusBadge } from "@/components/ui/status-badge";
 import { auth } from "@/auth";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
 
 export async function generateMetadata({
   params,
@@ -88,12 +95,28 @@ export default async function PropertyDetailPage({
 
   const features = Array.isArray(property.features) ? (property.features as string[]) : [];
 
+  const effectivePhone = property.consultant.phone || settings.phone;
+  const effectiveWhatsapp = property.consultant.whatsapp || settings.whatsapp;
+  const whatsappHref = effectiveWhatsapp
+    ? buildPropertyWhatsAppLink(effectiveWhatsapp, property)
+    : null;
+  const effectiveSchedulingUrl = property.consultant.schedulingUrl || settings.schedulingUrl;
+
+  const neighborhoodText = property.neighborhood ? neighborhoodDescriptions[property.neighborhood] : null;
+
+  const breadcrumbItems = [
+    { label: "Accueil", href: "/" },
+    { label: "Biens", href: "/biens" },
+    { label: property.city, href: `/villes/${encodeURIComponent(property.city)}` },
+    { label: property.title },
+  ];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
     name: property.title,
     description: property.description.slice(0, 500),
-    url: `https://mconfidential.ma/biens/${property.slug}`,
+    url: `${SITE_URL}/biens/${property.slug}`,
     datePosted: property.publishedAt?.toISOString(),
     image: property.images.map((i) => i.url),
     offers: {
@@ -132,8 +155,16 @@ export default async function PropertyDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(breadcrumbItems, SITE_URL)) }}
+      />
 
-      <Container className="py-10 pb-28 lg:pb-10">
+      <Container className="pt-6">
+        <Breadcrumbs items={breadcrumbItems} />
+      </Container>
+
+      <Container className="py-6 pb-28 lg:pb-10">
         <Gallery images={property.images} title={property.title} />
 
         <div className="mt-10 grid gap-12 lg:grid-cols-3">
@@ -151,11 +182,14 @@ export default async function PropertyDetailPage({
 
             <h1 className="mt-3 font-serif text-3xl leading-tight md:text-4xl">{property.title}</h1>
 
-            <p className="mt-2 flex items-center gap-1.5 text-charcoal-soft">
-              <MapPin size={16} strokeWidth={1.5} />
-              {property.neighborhood ? `${property.neighborhood}, ` : ""}
-              {property.city}
-            </p>
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+              <p className="flex items-center gap-1.5 text-charcoal-soft">
+                <MapPin size={16} strokeWidth={1.5} />
+                {property.neighborhood ? `${property.neighborhood}, ` : ""}
+                {property.city}
+              </p>
+              <ShareButton title={property.title} url={`${SITE_URL}/biens/${property.slug}`} />
+            </div>
 
             <p className="mt-6 font-serif text-3xl text-charcoal">
               {formatPrice(property.price, property.currency)}
@@ -184,6 +218,18 @@ export default async function PropertyDetailPage({
               </div>
             </div>
 
+            {neighborhoodText && (
+              <div className="mt-8">
+                <h2 className="font-serif text-xl">
+                  Le quartier {property.neighborhood ? `— ${property.neighborhood}` : ""}
+                </h2>
+                <p className="mt-3 leading-relaxed text-charcoal-soft">{neighborhoodText}</p>
+                <div className="mt-4">
+                  <NeighborhoodMap city={property.city} neighborhood={property.neighborhood} />
+                </div>
+              </div>
+            )}
+
             {features.length > 0 && (
               <div className="mt-8">
                 <h2 className="font-serif text-xl">Caractéristiques</h2>
@@ -210,17 +256,17 @@ export default async function PropertyDetailPage({
               )}
 
               <div className="mt-5 hidden flex-col gap-2 lg:flex">
-                {property.consultant.phone && (
+                {effectivePhone && (
                   <a
-                    href={`tel:${property.consultant.phone}`}
+                    href={`tel:${effectivePhone}`}
                     className="flex items-center justify-center gap-2 bg-charcoal px-5 py-3 text-sm font-medium text-ivory transition-colors hover:bg-olive"
                   >
-                    <Phone size={16} strokeWidth={1.5} /> {property.consultant.phone}
+                    <Phone size={16} strokeWidth={1.5} /> {effectivePhone}
                   </a>
                 )}
-                {property.consultant.whatsapp && (
+                {whatsappHref && (
                   <a
-                    href={`https://wa.me/${property.consultant.whatsapp.replace(/[^\d]/g, "")}`}
+                    href={whatsappHref}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center justify-center gap-2 border border-charcoal px-5 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
@@ -228,7 +274,7 @@ export default async function PropertyDetailPage({
                     <MessageCircle size={16} strokeWidth={1.5} /> WhatsApp
                   </a>
                 )}
-                {!property.consultant.phone && !property.consultant.whatsapp && (
+                {!effectivePhone && !whatsappHref && (
                   <p className="text-sm text-charcoal-soft">
                     Coordonnées à renseigner par le consultant dans son profil.
                   </p>
@@ -236,11 +282,15 @@ export default async function PropertyDetailPage({
               </div>
             </div>
 
-            <div className={settings.schedulingUrl ? "" : "border border-border bg-white/40 p-6"}>
-              {!settings.schedulingUrl && <p className="font-serif text-lg">Planifier une visite</p>}
-              <div className={settings.schedulingUrl ? "" : "mt-4"}>
-                {settings.schedulingUrl ? (
-                  <SchedulingEmbed url={settings.schedulingUrl} title={property.title} />
+            <div className={effectiveSchedulingUrl ? "" : "border border-border bg-white/40 p-6"}>
+              {!effectiveSchedulingUrl && <p className="font-serif text-lg">Planifier une visite</p>}
+              <div className={effectiveSchedulingUrl ? "" : "mt-4"}>
+                {effectiveSchedulingUrl ? (
+                  <SchedulingEmbed
+                    url={effectiveSchedulingUrl}
+                    title={property.title}
+                    reference={property.reference}
+                  />
                 ) : (
                   <VisitForm propertyId={property.id} />
                 )}
@@ -261,11 +311,7 @@ export default async function PropertyDetailPage({
         )}
       </Container>
 
-      <MobileContactBar
-        phone={property.consultant.phone}
-        whatsapp={property.consultant.whatsapp}
-        propertyTitle={property.title}
-      />
+      <MobileContactBar phone={effectivePhone} whatsappHref={whatsappHref} />
     </>
   );
 }

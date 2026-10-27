@@ -74,6 +74,9 @@ model User {
   title        String? // e.g. "Consultant senior"
   bio          String?
   photoUrl     String?
+  // Personal Cal.com/Calendly link. When set, it takes priority over the
+  // agency-wide scheduling URL on this consultant's property pages.
+  schedulingUrl String?
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

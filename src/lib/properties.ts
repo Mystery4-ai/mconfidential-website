@@ -95,7 +95,16 @@ export async function getFeaturedProperties(limit = 6) {
 const propertyDetailInclude = {
   images: { orderBy: { position: "asc" as const } },
   consultant: {
-    select: { id: true, name: true, phone: true, whatsapp: true, title: true, photoUrl: true, email: true },
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      whatsapp: true,
+      title: true,
+      photoUrl: true,
+      email: true,
+      schedulingUrl: true,
+    },
   },
 };
 

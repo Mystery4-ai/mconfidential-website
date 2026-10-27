@@ -18,6 +18,7 @@ const baseSchema = z.object({
   phone: z.string().trim().optional().or(z.literal("")),
   whatsapp: z.string().trim().optional().or(z.literal("")),
   bio: z.string().trim().optional().or(z.literal("")),
+  schedulingUrl: z.string().trim().optional().or(z.literal("")),
 });
 
 export async function createConsultant(
@@ -34,6 +35,7 @@ export async function createConsultant(
     phone: formData.get("phone"),
     whatsapp: formData.get("whatsapp"),
     bio: formData.get("bio"),
+    schedulingUrl: formData.get("schedulingUrl"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message || "Formulaire invalide." };
@@ -66,6 +68,7 @@ export async function createConsultant(
       phone: parsed.data.phone || null,
       whatsapp: parsed.data.whatsapp || null,
       bio: parsed.data.bio || null,
+      schedulingUrl: parsed.data.schedulingUrl || null,
       photoUrl,
       passwordHash,
     },
@@ -90,6 +93,7 @@ export async function updateConsultant(
     phone: formData.get("phone"),
     whatsapp: formData.get("whatsapp"),
     bio: formData.get("bio"),
+    schedulingUrl: formData.get("schedulingUrl"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message || "Formulaire invalide." };
@@ -125,6 +129,7 @@ export async function updateConsultant(
       phone: parsed.data.phone || null,
       whatsapp: parsed.data.whatsapp || null,
       bio: parsed.data.bio || null,
+      schedulingUrl: parsed.data.schedulingUrl || null,
       ...(photoUrl ? { photoUrl } : {}),
       ...(passwordHash ? { passwordHash } : {}),
     },
