@@ -39,7 +39,7 @@ export async function generateMetadata({
   const params = parseParams(await searchParams);
   const parts = [
     params.transaction === "RENT" ? "À louer" : params.transaction === "SALE" ? "À vendre" : "Biens",
-    params.city,
+    [params.neighborhood, params.city].filter(Boolean).join(", "),
   ].filter(Boolean);
 
   return {

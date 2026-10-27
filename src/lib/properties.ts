@@ -143,22 +143,3 @@ export async function getDistinctCities() {
   });
   return rows.map((r) => r.city);
 }
-
-export async function getNeighborhoodsByCity() {
-  const rows = await db.property.findMany({
-    where: { status: "PUBLISHED", neighborhood: { not: null } },
-    select: { city: true, neighborhood: true },
-    distinct: ["city", "neighborhood"],
-    orderBy: [{ city: "asc" }, { neighborhood: "asc" }],
-  });
-
-  const grouped = new Map<string, string[]>();
-  for (const row of rows) {
-    if (!row.neighborhood) continue;
-    const list = grouped.get(row.city) ?? [];
-    list.push(row.neighborhood);
-    grouped.set(row.city, list);
-  }
-
-  return Array.from(grouped.entries()).map(([city, neighborhoods]) => ({ city, neighborhoods }));
-}

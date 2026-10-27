@@ -1,4 +1,5 @@
 import { propertyTypeLabels } from "@/lib/labels";
+import { neighborhoodDirectory } from "@/lib/neighborhoods";
 import { PropertySearchParams } from "@/lib/properties";
 
 const fieldClass =
@@ -19,7 +20,7 @@ export function FilterBar({
       <form
         action="/biens"
         method="get"
-        className="grid grid-cols-2 gap-3 p-5 pt-0 lg:grid-cols-6 lg:pt-5"
+        className="grid grid-cols-2 gap-3 p-5 pt-0 lg:grid-cols-4 lg:pt-5"
       >
         <select name="transaction" defaultValue={current.transaction ?? ""} className={fieldClass}>
           <option value="">Acheter ou louer</option>
@@ -42,6 +43,19 @@ export function FilterBar({
             <option key={city} value={city}>
               {city}
             </option>
+          ))}
+        </select>
+
+        <select name="neighborhood" defaultValue={current.neighborhood ?? ""} className={fieldClass}>
+          <option value="">Tous les quartiers</option>
+          {neighborhoodDirectory.map((group) => (
+            <optgroup key={group.city} label={group.city}>
+              {group.neighborhoods.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
 
@@ -71,7 +85,7 @@ export function FilterBar({
 
         <button
           type="submit"
-          className="col-span-2 bg-charcoal px-5 py-2.5 text-sm font-medium text-ivory transition-colors hover:bg-olive lg:col-span-6"
+          className="col-span-2 bg-charcoal px-5 py-2.5 text-sm font-medium text-ivory transition-colors hover:bg-olive lg:col-span-4"
         >
           Appliquer les filtres
         </button>

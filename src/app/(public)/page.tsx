@@ -11,12 +11,9 @@ import {
   FileCheck,
   Lightbulb,
 } from "lucide-react";
-import {
-  getFeaturedProperties,
-  getDistinctCities,
-  getNeighborhoodsByCity,
-} from "@/lib/properties";
+import { getFeaturedProperties, getDistinctCities } from "@/lib/properties";
 import { getAgencySettings } from "@/lib/settings";
+import { neighborhoodDirectory } from "@/lib/neighborhoods";
 import { PropertyCard } from "@/components/property/property-card";
 import { Container } from "@/components/layout/container";
 import { LinkButton } from "@/components/ui/button";
@@ -73,11 +70,10 @@ const services = [
 ];
 
 export default async function HomePage() {
-  const [settings, featured, cities, neighborhoodsByCity] = await Promise.all([
+  const [settings, featured, cities] = await Promise.all([
     getAgencySettings(),
     getFeaturedProperties(6),
     getDistinctCities(),
-    getNeighborhoodsByCity(),
   ]);
 
   const heroImage = featured[0]?.coverImage;
@@ -182,36 +178,34 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {neighborhoodsByCity.length > 0 && (
-        <section className="border-y border-border bg-ivory-dim py-20">
-          <Container>
-            <p className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
-              Explorer par quartier
-            </p>
-            <h2 className="mt-2 font-serif text-3xl">Nos quartiers</h2>
+      <section className="border-y border-border bg-ivory-dim py-20">
+        <Container>
+          <p className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
+            Explorer par quartier
+          </p>
+          <h2 className="mt-2 font-serif text-3xl">Nos quartiers</h2>
 
-            <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-              {neighborhoodsByCity.map(({ city, neighborhoods }) => (
-                <div key={city}>
-                  <p className="font-serif text-lg">{city}</p>
-                  <ul className="mt-3 space-y-2">
-                    {neighborhoods.map((n) => (
-                      <li key={n}>
-                        <Link
-                          href={`/biens?city=${encodeURIComponent(city)}&neighborhood=${encodeURIComponent(n)}`}
-                          className="text-sm text-charcoal-soft hover:text-charcoal"
-                        >
-                          {n}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </Container>
-        </section>
-      )}
+          <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+            {neighborhoodDirectory.map(({ city, neighborhoods }) => (
+              <div key={city}>
+                <p className="font-serif text-lg">{city}</p>
+                <ul className="mt-3 space-y-2">
+                  {neighborhoods.map((n) => (
+                    <li key={n}>
+                      <Link
+                        href={`/biens?city=${encodeURIComponent(city)}&neighborhood=${encodeURIComponent(n)}`}
+                        className="text-sm text-charcoal-soft hover:text-charcoal"
+                      >
+                        {n}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
 
       <section className="py-20">
         <Container>

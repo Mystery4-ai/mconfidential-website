@@ -1,4 +1,5 @@
 import { propertyTypeLabels } from "@/lib/labels";
+import { neighborhoodDirectory } from "@/lib/neighborhoods";
 import { BudgetFilter } from "./budget-filter";
 
 export function HomeSearchForm({ cities }: { cities: string[] }) {
@@ -9,7 +10,7 @@ export function HomeSearchForm({ cities }: { cities: string[] }) {
     <form
       action="/biens"
       method="get"
-      className="grid grid-cols-1 gap-3 border border-border bg-white/95 p-5 shadow-sm backdrop-blur sm:grid-cols-2 lg:grid-cols-5"
+      className="grid grid-cols-1 gap-3 border border-border bg-white/95 p-5 shadow-sm backdrop-blur sm:grid-cols-2 lg:grid-cols-3"
     >
       <div>
         <label htmlFor="transaction" className="sr-only">Transaction</label>
@@ -40,6 +41,22 @@ export function HomeSearchForm({ cities }: { cities: string[] }) {
             <option key={city} value={city}>
               {city}
             </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="neighborhood" className="sr-only">Quartier</label>
+        <select id="neighborhood" name="neighborhood" className={fieldClass} defaultValue="">
+          <option value="">Tous les quartiers</option>
+          {neighborhoodDirectory.map((group) => (
+            <optgroup key={group.city} label={group.city}>
+              {group.neighborhoods.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </div>
