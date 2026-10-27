@@ -1,18 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { cn } from "@/lib/cn";
+import { LayoutGrid } from "lucide-react";
+import { NoDownloadImage } from "./no-download-image";
+import { Lightbox } from "./lightbox";
 
-export function Gallery({
-  images,
-  title,
-}: {
-  images: { url: string; altText: string | null }[];
-  title: string;
-}) {
-  const [active, setActive] = useState(0);
-  const current = images[active];
+type GalleryImage = { url: string; altText: string | null };
+
+export function Gallery({ images, title }: { images: GalleryImage[]; title: string }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (!images.length) {
     return (
@@ -22,35 +18,67 @@ export function Gallery({
     );
   }
 
+  const extraCount = images.length - 5;
+
   return (
-    <div>
-      <div className="relative aspect-[16/10] overflow-hidden bg-ivory-dim">
-        <Image
-          src={current.url}
-          alt={current.altText || title}
-          fill
-          priority
-          sizes="(min-width: 1024px) 66vw, 100vw"
-          className="object-cover"
-        />
+    <div className="relative">
+      <div className="grid grid-cols-1 gap-1 overflow-hidden rounded-sm md:grid-cols-4 md:grid-rows-2 md:h-[480px]">
+        <button
+          type="button"
+          onClick={() => setLightboxIndex(0)}
+          aria-label="Agrandir les photos"
+          className="relative aspect-[4/3] overflow-hidden bg-ivory-dim md:aspect-auto md:col-span-2 md:row-span-2"
+        >
+          <NoDownloadImage
+            src={images[0].url}
+            alt={images[0].altText || title}
+            fill
+            priority
+            sizes="(min-width: 768px) 50vw, 100vw"
+            className="object-cover"
+          />
+        </button>
+
+        {images.slice(1, 5).map((img, i) => (
+          <button
+            key={img.url + i}
+            type="button"
+            onClick={() => setLightboxIndex(i + 1)}
+            aria-label={`Agrandir la photo ${i + 2}`}
+            className="relative hidden overflow-hidden bg-ivory-dim md:block"
+          >
+            <NoDownloadImage src={img.url} alt="" fill sizes="25vw" className="object-cover" />
+            {i === 3 && extraCount > 0 && (
+              <span className="absolute inset-0 flex items-center justify-center bg-charcoal/50 text-sm font-medium text-ivory">
+                +{extraCount} photos
+              </span>
+            )}
+          </button>
+        ))}
       </div>
+
       {images.length > 1 && (
-        <div className="mt-2 grid grid-cols-5 gap-2 sm:grid-cols-7">
-          {images.map((img, i) => (
-            <button
-              key={img.url + i}
-              onClick={() => setActive(i)}
-              aria-label={`Afficher la photo ${i + 1}`}
-              aria-current={i === active}
-              className={cn(
-                "relative aspect-square overflow-hidden",
-                i === active ? "ring-2 ring-charcoal" : "opacity-80 hover:opacity-100"
-              )}
-            >
-              <Image src={img.url} alt="" fill sizes="10vw" className="object-cover" />
-            </button>
-          ))}
-        </div>
+        <>
+          <span className="absolute bottom-3 right-3 rounded-full bg-charcoal/80 px-3 py-1 text-xs text-ivory md:hidden">
+            {images.length} photos
+          </span>
+          <button
+            type="button"
+            onClick={() => setLightboxIndex(0)}
+            className="absolute bottom-3 right-3 hidden items-center gap-1.5 rounded-sm border border-charcoal bg-ivory px-3 py-2 text-xs font-medium text-charcoal hover:bg-ivory-dim md:flex"
+          >
+            <LayoutGrid size={14} strokeWidth={1.5} /> Afficher les {images.length} photos
+          </button>
+        </>
+      )}
+
+      {lightboxIndex !== null && (
+        <Lightbox
+          images={images}
+          title={title}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
     </div>
   );
