@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, MessageCircle } from "lucide-react";
 import { getPropertyBySlug, getPropertyBySlugForPreview, getSimilarProperties } from "@/lib/properties";
+import { getAgencySettings } from "@/lib/settings";
 import { formatPrice, formatSurface, propertyTypeLabels, transactionTypeLabels } from "@/lib/labels";
 import { Container } from "@/components/layout/container";
 import { Gallery } from "@/components/property/gallery";
 import { PropertyCard } from "@/components/property/property-card";
 import { VisitForm } from "@/components/property/visit-form";
+import { SchedulingEmbed } from "@/components/property/scheduling-embed";
 import { MobileContactBar } from "@/components/property/mobile-contact-bar";
 import { AvailabilityBadge, PropertyStatusBadge } from "@/components/ui/status-badge";
 import { auth } from "@/auth";
@@ -70,7 +72,10 @@ export default async function PropertyDetailPage({
     if (!property) notFound();
   }
 
-  const similar = await getSimilarProperties(property);
+  const [similar, settings] = await Promise.all([
+    getSimilarProperties(property),
+    getAgencySettings(),
+  ]);
 
   const specs = [
     property.bedrooms != null && { icon: BedDouble, label: `${property.bedrooms} chambres` },
@@ -231,10 +236,14 @@ export default async function PropertyDetailPage({
               </div>
             </div>
 
-            <div className="border border-border bg-white/40 p-6">
-              <p className="font-serif text-lg">Planifier une visite</p>
-              <div className="mt-4">
-                <VisitForm propertyId={property.id} />
+            <div className={settings.schedulingUrl ? "" : "border border-border bg-white/40 p-6"}>
+              {!settings.schedulingUrl && <p className="font-serif text-lg">Planifier une visite</p>}
+              <div className={settings.schedulingUrl ? "" : "mt-4"}>
+                {settings.schedulingUrl ? (
+                  <SchedulingEmbed url={settings.schedulingUrl} title={property.title} />
+                ) : (
+                  <VisitForm propertyId={property.id} />
+                )}
               </div>
             </div>
           </aside>

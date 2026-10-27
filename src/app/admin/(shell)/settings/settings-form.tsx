@@ -15,6 +15,7 @@ type Settings = {
   city: string | null;
   facebookUrl: string | null;
   instagramUrl: string | null;
+  schedulingUrl: string | null;
   heroHeadline: string | null;
   heroSubheadline: string | null;
   aboutText: string | null;
@@ -78,6 +79,26 @@ export function SettingsForm({ settings }: { settings: Settings }) {
             <Label htmlFor="instagramUrl">Instagram</Label>
             <Input id="instagramUrl" name="instagramUrl" defaultValue={settings.instagramUrl ?? ""} />
           </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="font-serif text-lg">Prise de rendez-vous</h2>
+        <p className="mt-1 text-xs text-charcoal-soft">
+          Collez l’URL de votre page de réservation Cal.com ou Calendly (ex.
+          https://cal.com/agence/visite-bien). Une fois renseignée, elle remplace le formulaire de
+          visite standard sur les fiches biens par ce calendrier. Laissez vide pour garder le
+          formulaire actuel.
+        </p>
+        <div className="mt-4">
+          <Label htmlFor="schedulingUrl">URL Cal.com / Calendly</Label>
+          <Input
+            id="schedulingUrl"
+            name="schedulingUrl"
+            type="url"
+            placeholder="https://cal.com/votre-agence/visite"
+            defaultValue={settings.schedulingUrl ?? ""}
+          />
         </div>
       </section>
 

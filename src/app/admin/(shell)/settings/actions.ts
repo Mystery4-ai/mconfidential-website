@@ -17,6 +17,7 @@ const schema = z.object({
   city: z.string().trim().optional().or(z.literal("")),
   facebookUrl: z.string().trim().optional().or(z.literal("")),
   instagramUrl: z.string().trim().optional().or(z.literal("")),
+  schedulingUrl: z.string().trim().optional().or(z.literal("")),
   heroHeadline: z.string().trim().optional().or(z.literal("")),
   heroSubheadline: z.string().trim().optional().or(z.literal("")),
   aboutText: z.string().trim().optional().or(z.literal("")),

@@ -184,6 +184,11 @@ model AgencySettings {
   facebookUrl  String?
   instagramUrl String?
 
+  // Cal.com or Calendly booking page URL (e.g. https://cal.com/agence/visite).
+  // When set, property pages embed it for visit scheduling instead of the
+  // built-in date/time form.
+  schedulingUrl String?
+
   heroHeadline    String?
   heroSubheadline String?
   aboutText       String?

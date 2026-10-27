@@ -14,6 +14,7 @@ export async function getAgencySettings() {
       city: null,
       facebookUrl: null,
       instagramUrl: null,
+      schedulingUrl: null,
       heroHeadline: null,
       heroSubheadline: null,
       aboutText: null,
