@@ -1,29 +1,29 @@
-function buildEmbedUrl(url: string, context: { reference: string; title: string }) {
+"use client";
+
+import { useEffect } from "react";
+import CalEmbed, { getCalApi } from "@calcom/embed-react";
+
+function buildCalendlyUrl(url: string, reference: string) {
   try {
     const u = new URL(url);
-    const note = `Bien ${context.reference} — ${context.title}`;
-
-    if (u.hostname.includes("calendly.com")) {
-      // Strip Calendly's own branding/description chrome so only the
-      // calendar + time slots show — the surrounding page already carries
-      // the property context.
-      u.searchParams.set("hide_event_type_details", "1");
-      u.searchParams.set("hide_landing_page_details", "1");
-      u.searchParams.set("hide_gdpr_banner", "1");
-      // Calendly doesn't support a generic prefilled notes field without a
-      // matching custom question, but UTM params are recorded and shown to
-      // the host on the booking — enough to identify the property.
-      u.searchParams.set("utm_content", context.reference);
-    }
-    if (u.hostname.includes("cal.com")) {
-      // Same idea for Cal.com: embed mode + month view + no event details
-      // panel, so visitors see just the calendar and open slots.
-      u.searchParams.set("embed", "true");
-      u.searchParams.set("layout", "month_view");
-      u.searchParams.set("hideEventTypeDetails", "true");
-      u.searchParams.set("notes", note);
-    }
+    // Calendly officially supports these as plain query params on its embed
+    // page — strips branding/description chrome so only the calendar and
+    // time slots show.
+    u.searchParams.set("hide_event_type_details", "1");
+    u.searchParams.set("hide_landing_page_details", "1");
+    u.searchParams.set("hide_gdpr_banner", "1");
+    u.searchParams.set("utm_content", reference);
     return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+/** Extracts the "username/event-type" path Cal.com's embed SDK expects from a full cal.com URL. */
+function toCalLink(url: string) {
+  try {
+    const u = new URL(url);
+    return u.pathname.replace(/^\/+|\/+$/g, "");
   } catch {
     return url;
   }
@@ -38,10 +38,36 @@ export function SchedulingEmbed({
   title: string;
   reference: string;
 }) {
+  const isCalCom = /(^|\.)cal\.com$/.test(new URL(url, "https://cal.com").hostname || "");
+
+  useEffect(() => {
+    if (!isCalCom) return;
+    (async () => {
+      const cal = await getCalApi();
+      // Cal.com only honors UI config sent through its embed SDK (postMessage
+      // handshake) — plain URL query params on the bare booking page are not
+      // reliably respected, so this is the one way to actually hide the host
+      // name / event description and keep just the calendar + time slots.
+      cal("ui", { hideEventTypeDetails: true, layout: "month_view" });
+    })();
+  }, [isCalCom]);
+
+  if (isCalCom) {
+    return (
+      <div className="overflow-hidden rounded-sm border border-border">
+        <CalEmbed
+          calLink={toCalLink(url)}
+          config={{ layout: "month_view", notes: `Bien ${reference} — ${title}` }}
+          style={{ width: "100%", height: "min(88vh, 880px)", overflow: "hidden" }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-sm border border-border">
       <iframe
-        src={buildEmbedUrl(url, { reference, title })}
+        src={buildCalendlyUrl(url, reference)}
         title={`Planifier une visite — ${title}`}
         className="h-[min(88vh,880px)] w-full"
         loading="lazy"
