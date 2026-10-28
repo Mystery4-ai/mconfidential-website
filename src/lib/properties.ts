@@ -143,6 +143,10 @@ export async function getSimilarProperties(property: {
   return items.map((p) => ({ ...p, coverImage: p.images[0] ?? null }));
 }
 
+export async function getPublishedCountForConsultant(consultantId: string) {
+  return db.property.count({ where: { consultantId, status: "PUBLISHED" } });
+}
+
 export async function getDistinctCities() {
   const rows = await db.property.findMany({
     where: { status: "PUBLISHED" },

@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils } from "lucide-react";
+import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils, BadgeCheck } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/social-icons";
-import { getPropertyBySlug, getPropertyBySlugForPreview, getSimilarProperties } from "@/lib/properties";
+import { Avatar } from "@/components/ui/avatar";
+import { cn } from "@/lib/cn";
+import {
+  getPropertyBySlug,
+  getPropertyBySlugForPreview,
+  getSimilarProperties,
+  getPublishedCountForConsultant,
+} from "@/lib/properties";
 import { getAgencySettings } from "@/lib/settings";
 import { getUpcomingSlotsForConsultant } from "@/lib/availability";
 import { formatPrice, formatSurface, propertyTypeLabels, transactionTypeLabels } from "@/lib/labels";
@@ -82,10 +89,11 @@ export default async function PropertyDetailPage({
     if (!property) notFound();
   }
 
-  const [similar, settings, availableSlots] = await Promise.all([
+  const [similar, settings, availableSlots, consultantListingCount] = await Promise.all([
     getSimilarProperties(property),
     getAgencySettings(),
     getUpcomingSlotsForConsultant(property.consultant.id),
+    getPublishedCountForConsultant(property.consultant.id),
   ]);
 
   const specs = [
@@ -105,10 +113,6 @@ export default async function PropertyDetailPage({
     ? buildPropertyWhatsAppLink(effectiveWhatsapp, property)
     : null;
   const effectiveSchedulingUrl = property.consultant.schedulingUrl || settings.schedulingUrl;
-  // The bare Cal.com/Calendly iframe has its own header/branding, so we skip
-  // our own "Planifier une visite" box around it — but only when it's the
-  // one being shown (no open slots take priority, see render below).
-  const useBareEmbed = availableSlots.length === 0 && !!effectiveSchedulingUrl;
 
   const neighborhoodProfile = property.neighborhood ? neighborhoodDescriptions[property.neighborhood] : null;
 
@@ -285,45 +289,59 @@ export default async function PropertyDetailPage({
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-sm border border-border bg-white/40 p-6">
-              <p className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
-                Consultant
-              </p>
-              <p className="mt-2 font-serif text-lg">{property.consultant.name}</p>
-              {property.consultant.title && (
-                <p className="text-sm text-charcoal-soft">{property.consultant.title}</p>
-              )}
+            <div className="rounded-sm border border-border bg-white/40 p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <Avatar src={property.consultant.photoUrl} name={property.consultant.name} size={56} />
+                <div>
+                  <p className="font-serif text-lg leading-tight">{property.consultant.name}</p>
+                  {property.consultant.title && (
+                    <p className="text-sm text-charcoal-soft">{property.consultant.title}</p>
+                  )}
+                </div>
+              </div>
 
-              <div className="mt-5 hidden flex-col gap-2 lg:flex">
+              <div className="mt-4 flex items-center gap-1.5 border-t border-border pt-4 text-xs text-charcoal-soft">
+                <BadgeCheck size={15} strokeWidth={1.5} className="shrink-0 text-olive" />
+                <span>
+                  Consultant vérifié
+                  {consultantListingCount > 0 &&
+                    ` · ${consultantListingCount} bien${consultantListingCount > 1 ? "s" : ""} en exclusivité`}
+                </span>
+              </div>
+
+              <div className="mt-4 hidden grid-cols-2 gap-2 lg:grid">
                 {whatsappHref && (
                   <a
                     href={whatsappHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center justify-center gap-2 rounded-sm bg-[#25D366] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02]"
+                    className="flex items-center justify-center gap-2 rounded-sm bg-[#25D366] px-4 py-3 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02]"
                   >
-                    <WhatsAppIcon size={18} /> WhatsApp — {effectiveWhatsapp}
+                    <WhatsAppIcon size={18} /> WhatsApp
                   </a>
                 )}
                 {effectivePhone && (
                   <a
                     href={`tel:${effectivePhone}`}
-                    className="flex items-center justify-center gap-2 rounded-sm border border-charcoal px-5 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
+                    className={cn(
+                      "flex items-center justify-center gap-2 rounded-sm border border-charcoal px-4 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-ivory",
+                      !whatsappHref && "col-span-2"
+                    )}
                   >
-                    <Phone size={16} strokeWidth={1.5} /> {effectivePhone}
+                    <Phone size={16} strokeWidth={1.5} /> Appeler
                   </a>
                 )}
                 {!effectivePhone && !whatsappHref && (
-                  <p className="text-sm text-charcoal-soft">
+                  <p className="col-span-2 text-sm text-charcoal-soft">
                     Coordonnées à renseigner par le consultant dans son profil.
                   </p>
                 )}
               </div>
             </div>
 
-            <div className={useBareEmbed ? "" : "rounded-sm border border-border bg-white/40 p-6"}>
-              {!useBareEmbed && <p className="font-serif text-lg">Planifier une visite</p>}
-              <div className={useBareEmbed ? "" : "mt-4"}>
+            <div className="rounded-sm border border-border bg-white/40 p-6 shadow-sm">
+              <p className="font-serif text-lg">Planifier une visite express</p>
+              <div className="mt-4">
                 {availableSlots.length > 0 ? (
                   <SlotPicker
                     propertyId={property.id}
