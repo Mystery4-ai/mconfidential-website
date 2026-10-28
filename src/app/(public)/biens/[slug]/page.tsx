@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, MessageCircle, School, Utensils } from "lucide-react";
+import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils } from "lucide-react";
+import { WhatsAppIcon } from "@/components/ui/social-icons";
 import { getPropertyBySlug, getPropertyBySlugForPreview, getSimilarProperties } from "@/lib/properties";
 import { getAgencySettings } from "@/lib/settings";
 import { getUpcomingSlotsForConsultant } from "@/lib/availability";
@@ -294,22 +295,22 @@ export default async function PropertyDetailPage({
               )}
 
               <div className="mt-5 hidden flex-col gap-2 lg:flex">
-                {effectivePhone && (
-                  <a
-                    href={`tel:${effectivePhone}`}
-                    className="flex items-center justify-center gap-2 bg-charcoal px-5 py-3 text-sm font-medium text-ivory transition-colors hover:bg-olive"
-                  >
-                    <Phone size={16} strokeWidth={1.5} /> {effectivePhone}
-                  </a>
-                )}
                 {whatsappHref && (
                   <a
                     href={whatsappHref}
                     target="_blank"
                     rel="noreferrer"
+                    className="flex items-center justify-center gap-2 bg-[#25D366] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02]"
+                  >
+                    <WhatsAppIcon size={18} /> WhatsApp — {effectiveWhatsapp}
+                  </a>
+                )}
+                {effectivePhone && (
+                  <a
+                    href={`tel:${effectivePhone}`}
                     className="flex items-center justify-center gap-2 border border-charcoal px-5 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
                   >
-                    <MessageCircle size={16} strokeWidth={1.5} /> WhatsApp — {effectiveWhatsapp}
+                    <Phone size={16} strokeWidth={1.5} /> {effectivePhone}
                   </a>
                 )}
                 {!effectivePhone && !whatsappHref && (
