@@ -39,11 +39,11 @@ export function SchedulingEmbed({
   reference: string;
 }) {
   return (
-    <div className="overflow-hidden border border-border">
+    <div className="overflow-hidden rounded-sm border border-border">
       <iframe
         src={buildEmbedUrl(url, { reference, title })}
         title={`Planifier une visite — ${title}`}
-        className="h-[720px] w-full"
+        className="h-[min(88vh,880px)] w-full"
         loading="lazy"
       />
     </div>

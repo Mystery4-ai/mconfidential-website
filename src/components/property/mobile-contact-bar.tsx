@@ -11,7 +11,7 @@ export function MobileContactBar({
   if (!phone && !whatsappHref) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-ivory/95 backdrop-blur lg:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 flex overflow-hidden rounded-t-xl border border-b-0 border-border bg-ivory/95 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur lg:hidden">
       {phone && (
         <a
           href={`tel:${phone}`}

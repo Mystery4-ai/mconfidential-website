@@ -285,7 +285,7 @@ export default async function PropertyDetailPage({
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-            <div className="border border-border bg-white/40 p-6">
+            <div className="rounded-sm border border-border bg-white/40 p-6">
               <p className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
                 Consultant
               </p>
@@ -300,7 +300,7 @@ export default async function PropertyDetailPage({
                     href={whatsappHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center justify-center gap-2 bg-[#25D366] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02]"
+                    className="flex items-center justify-center gap-2 rounded-sm bg-[#25D366] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02]"
                   >
                     <WhatsAppIcon size={18} /> WhatsApp — {effectiveWhatsapp}
                   </a>
@@ -308,7 +308,7 @@ export default async function PropertyDetailPage({
                 {effectivePhone && (
                   <a
                     href={`tel:${effectivePhone}`}
-                    className="flex items-center justify-center gap-2 border border-charcoal px-5 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
+                    className="flex items-center justify-center gap-2 rounded-sm border border-charcoal px-5 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
                   >
                     <Phone size={16} strokeWidth={1.5} /> {effectivePhone}
                   </a>
@@ -321,7 +321,7 @@ export default async function PropertyDetailPage({
               </div>
             </div>
 
-            <div className={useBareEmbed ? "" : "border border-border bg-white/40 p-6"}>
+            <div className={useBareEmbed ? "" : "rounded-sm border border-border bg-white/40 p-6"}>
               {!useBareEmbed && <p className="font-serif text-lg">Planifier une visite</p>}
               <div className={useBareEmbed ? "" : "mt-4"}>
                 {availableSlots.length > 0 ? (

@@ -61,7 +61,7 @@ export function SlotPicker({ propertyId, slots }: { propertyId: string; slots: S
                   type="button"
                   onClick={() => setSelectedId(slot.id)}
                   className={cn(
-                    "border px-3 py-1.5 text-sm transition-colors",
+                    "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
                     selectedId === slot.id
                       ? "border-charcoal bg-charcoal text-ivory"
                       : "border-border text-charcoal hover:border-charcoal"
