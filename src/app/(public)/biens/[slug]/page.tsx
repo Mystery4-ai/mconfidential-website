@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, MessageCircle } from "lucide-react";
+import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, MessageCircle, School, Utensils } from "lucide-react";
 import { getPropertyBySlug, getPropertyBySlugForPreview, getSimilarProperties } from "@/lib/properties";
 import { getAgencySettings } from "@/lib/settings";
+import { getUpcomingSlotsForConsultant } from "@/lib/availability";
 import { formatPrice, formatSurface, propertyTypeLabels, transactionTypeLabels } from "@/lib/labels";
 import { buildPropertyWhatsAppLink } from "@/lib/whatsapp";
 import { neighborhoodDescriptions } from "@/lib/neighborhood-content";
@@ -10,6 +11,7 @@ import { Container } from "@/components/layout/container";
 import { Gallery } from "@/components/property/gallery";
 import { PropertyCard } from "@/components/property/property-card";
 import { VisitForm } from "@/components/property/visit-form";
+import { SlotPicker } from "@/components/property/slot-picker";
 import { SchedulingEmbed } from "@/components/property/scheduling-embed";
 import { MobileContactBar } from "@/components/property/mobile-contact-bar";
 import { ShareButton } from "@/components/property/share-button";
@@ -79,9 +81,10 @@ export default async function PropertyDetailPage({
     if (!property) notFound();
   }
 
-  const [similar, settings] = await Promise.all([
+  const [similar, settings, availableSlots] = await Promise.all([
     getSimilarProperties(property),
     getAgencySettings(),
+    getUpcomingSlotsForConsultant(property.consultant.id),
   ]);
 
   const specs = [
@@ -101,8 +104,12 @@ export default async function PropertyDetailPage({
     ? buildPropertyWhatsAppLink(effectiveWhatsapp, property)
     : null;
   const effectiveSchedulingUrl = property.consultant.schedulingUrl || settings.schedulingUrl;
+  // The bare Cal.com/Calendly iframe has its own header/branding, so we skip
+  // our own "Planifier une visite" box around it — but only when it's the
+  // one being shown (no open slots take priority, see render below).
+  const useBareEmbed = availableSlots.length === 0 && !!effectiveSchedulingUrl;
 
-  const neighborhoodText = property.neighborhood ? neighborhoodDescriptions[property.neighborhood] : null;
+  const neighborhoodProfile = property.neighborhood ? neighborhoodDescriptions[property.neighborhood] : null;
 
   const breadcrumbItems = [
     { label: "Accueil", href: "/" },
@@ -218,18 +225,6 @@ export default async function PropertyDetailPage({
               </div>
             </div>
 
-            {neighborhoodText && (
-              <div className="mt-8">
-                <h2 className="font-serif text-xl">
-                  Le quartier {property.neighborhood ? `— ${property.neighborhood}` : ""}
-                </h2>
-                <p className="mt-3 leading-relaxed text-charcoal-soft">{neighborhoodText}</p>
-                <div className="mt-4">
-                  <NeighborhoodMap city={property.city} neighborhood={property.neighborhood} />
-                </div>
-              </div>
-            )}
-
             {features.length > 0 && (
               <div className="mt-8">
                 <h2 className="font-serif text-xl">Caractéristiques</h2>
@@ -241,6 +236,49 @@ export default async function PropertyDetailPage({
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {neighborhoodProfile && (
+              <div className="mt-8">
+                <h2 className="font-serif text-xl">
+                  Le quartier {property.neighborhood ? `— ${property.neighborhood}` : ""}
+                </h2>
+                <p className="mt-3 leading-relaxed text-charcoal-soft">{neighborhoodProfile.story}</p>
+
+                <dl className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div className="flex gap-2.5">
+                    <School size={18} strokeWidth={1.5} className="mt-0.5 shrink-0 text-olive" />
+                    <div>
+                      <dt className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
+                        Écoles
+                      </dt>
+                      <dd className="mt-1 text-sm text-charcoal-soft">{neighborhoodProfile.schools}</dd>
+                    </div>
+                  </div>
+                  <div className="flex gap-2.5">
+                    <Trees size={18} strokeWidth={1.5} className="mt-0.5 shrink-0 text-olive" />
+                    <div>
+                      <dt className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
+                        Espaces verts
+                      </dt>
+                      <dd className="mt-1 text-sm text-charcoal-soft">{neighborhoodProfile.parks}</dd>
+                    </div>
+                  </div>
+                  <div className="flex gap-2.5">
+                    <Utensils size={18} strokeWidth={1.5} className="mt-0.5 shrink-0 text-olive" />
+                    <div>
+                      <dt className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
+                        Restaurants
+                      </dt>
+                      <dd className="mt-1 text-sm text-charcoal-soft">{neighborhoodProfile.dining}</dd>
+                    </div>
+                  </div>
+                </dl>
+
+                <div className="mt-5">
+                  <NeighborhoodMap city={property.city} neighborhood={property.neighborhood} />
+                </div>
               </div>
             )}
           </div>
@@ -271,7 +309,7 @@ export default async function PropertyDetailPage({
                     rel="noreferrer"
                     className="flex items-center justify-center gap-2 border border-charcoal px-5 py-3 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
                   >
-                    <MessageCircle size={16} strokeWidth={1.5} /> WhatsApp
+                    <MessageCircle size={16} strokeWidth={1.5} /> WhatsApp — {effectiveWhatsapp}
                   </a>
                 )}
                 {!effectivePhone && !whatsappHref && (
@@ -282,10 +320,15 @@ export default async function PropertyDetailPage({
               </div>
             </div>
 
-            <div className={effectiveSchedulingUrl ? "" : "border border-border bg-white/40 p-6"}>
-              {!effectiveSchedulingUrl && <p className="font-serif text-lg">Planifier une visite</p>}
-              <div className={effectiveSchedulingUrl ? "" : "mt-4"}>
-                {effectiveSchedulingUrl ? (
+            <div className={useBareEmbed ? "" : "border border-border bg-white/40 p-6"}>
+              {!useBareEmbed && <p className="font-serif text-lg">Planifier une visite</p>}
+              <div className={useBareEmbed ? "" : "mt-4"}>
+                {availableSlots.length > 0 ? (
+                  <SlotPicker
+                    propertyId={property.id}
+                    slots={availableSlots.map((s) => ({ id: s.id, date: s.date, startTime: s.startTime }))}
+                  />
+                ) : effectiveSchedulingUrl ? (
                   <SchedulingEmbed
                     url={effectiveSchedulingUrl}
                     title={property.title}

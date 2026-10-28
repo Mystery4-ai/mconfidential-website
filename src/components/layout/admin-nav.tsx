@@ -9,6 +9,7 @@ type NavLink = { href: string; label: string; exact?: boolean };
 const baseLinks: NavLink[] = [
   { href: "/admin", label: "Tableau de bord", exact: true },
   { href: "/admin/properties", label: "Biens" },
+  { href: "/admin/availability", label: "Disponibilités" },
   { href: "/admin/inquiries", label: "Demandes" },
 ];
 

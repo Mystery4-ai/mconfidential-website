@@ -9,7 +9,7 @@ export function NeighborhoodMap({ city, neighborhood }: { city: string; neighbor
   return (
     <div className="overflow-hidden border border-border">
       <iframe
-        src={`https://maps.google.com/maps?q=${query}&z=14&output=embed`}
+        src={`https://www.google.com/maps/embed?origin=mfe&pb=!1m2!2m1!1s${query}`}
         title={`Localisation approximative — ${neighborhood ? `${neighborhood}, ` : ""}${city}`}
         className="h-64 w-full"
         loading="lazy"

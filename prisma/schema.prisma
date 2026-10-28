@@ -81,8 +81,9 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  properties Property[] @relation("PropertyConsultant")
-  inquiries  Inquiry[]  @relation("InquiryConsultant")
+  properties        Property[]         @relation("PropertyConsultant")
+  inquiries         Inquiry[]          @relation("InquiryConsultant")
+  availabilitySlots AvailabilitySlot[]
 }
 
 model Property {
@@ -165,11 +166,34 @@ model Inquiry {
 
   consentGiven Boolean @default(false)
 
+  availabilitySlot AvailabilitySlot?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([assignedConsultantId])
+}
+
+// A bookable visit time slot a consultant has opened up. Booking one
+// through the public site creates an Inquiry and atomically marks the slot
+// taken, so every visit request is guaranteed to land in the backoffice —
+// independent of whether Cal.com/Calendly is also configured.
+model AvailabilitySlot {
+  id           String @id @default(cuid())
+  consultantId String
+  consultant   User   @relation(fields: [consultantId], references: [id], onDelete: Cascade)
+
+  date      String // "YYYY-MM-DD"
+  startTime String // "HH:MM"
+
+  isBooked  Boolean  @default(false)
+  inquiryId String?  @unique
+  inquiry   Inquiry? @relation(fields: [inquiryId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([consultantId, date])
 }
 
 model AgencySettings {
