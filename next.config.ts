@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
       // uploading several property images in one batch.
       bodySizeLimit: "25mb",
     },
+    // The public site is force-dynamic so the server always re-renders with
+    // fresh data, but the client-side router cache can still serve an
+    // already-visited page from memory for up to 30s on normal link clicks
+    // (only a full reload bypasses it). Disabling that window is what makes
+    // backoffice edits show up immediately when navigating normally, not
+    // just on a hard refresh.
+    staleTimes: {
+      dynamic: 0,
+    },
   },
   async redirects() {
     return [
