@@ -112,7 +112,7 @@ export function SiteFooter({
         </div>
       </Container>
 
-      <div className="border-t border-border py-6">
+      <div className="border-t border-border py-6 pb-20 md:pb-6">
         <Container className="flex flex-col items-center justify-between gap-3 text-xs text-charcoal-soft md:flex-row">
           <p>© {year} M. Confidential — Agence immobilière Maroc. Tous droits réservés.</p>
           <div className="flex items-center gap-4">
