@@ -113,6 +113,10 @@ export default async function PropertyDetailPage({
     ? buildPropertyWhatsAppLink(effectiveWhatsapp, property)
     : null;
   const effectiveSchedulingUrl = property.consultant.schedulingUrl || settings.schedulingUrl;
+  // The Cal.com/Calendly embed renders its own already-rounded, self-contained
+  // card — wrapping it in our own bordered box again creates an ugly nested
+  // double box, so skip our box styling only for that branch.
+  const useBareEmbed = availableSlots.length === 0 && !!effectiveSchedulingUrl;
 
   const neighborhoodProfile = property.neighborhood ? neighborhoodDescriptions[property.neighborhood] : null;
 
@@ -339,9 +343,9 @@ export default async function PropertyDetailPage({
               </div>
             </div>
 
-            <div className="rounded-sm border border-border bg-white/40 p-6 shadow-sm">
+            <div>
               <p className="font-serif text-lg">Planifier une visite express</p>
-              <div className="mt-4">
+              <div className={cn("mt-4", !useBareEmbed && "rounded-sm border border-border bg-white/40 p-6 shadow-sm")}>
                 {availableSlots.length > 0 ? (
                   <SlotPicker
                     propertyId={property.id}

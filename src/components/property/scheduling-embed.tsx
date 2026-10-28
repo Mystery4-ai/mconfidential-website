@@ -53,14 +53,18 @@ export function SchedulingEmbed({
   }, [isCalCom]);
 
   if (isCalCom) {
+    // Cal.com's own embed already renders a rounded, self-contained card —
+    // skip our own border/box around it (that created an ugly nested double
+    // box). Don't fight Cal's own auto-resize (it sets the iframe's height
+    // directly based on content, e.g. taller when a day has many slots) with
+    // a fixed height here — that caused it to either leave a blank gap (too
+    // tall) or overflow into the content below (too short).
     return (
-      <div className="overflow-hidden rounded-sm border border-border">
-        <CalEmbed
-          calLink={toCalLink(url)}
-          config={{ layout: "month_view", notes: `Bien ${reference} — ${title}` }}
-          style={{ width: "100%", height: "min(88vh, 880px)", overflow: "hidden" }}
-        />
-      </div>
+      <CalEmbed
+        calLink={toCalLink(url)}
+        config={{ layout: "month_view", notes: `Bien ${reference} — ${title}` }}
+        style={{ width: "100%", minHeight: "500px" }}
+      />
     );
   }
 
