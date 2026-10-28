@@ -4,11 +4,6 @@ import { Container } from "@/components/layout/container";
 import { PropertyCard } from "@/components/property/property-card";
 import { searchProperties, getDistinctCities } from "@/lib/properties";
 
-export async function generateStaticParams() {
-  const cities = await getDistinctCities();
-  return cities.map((city) => ({ city: encodeURIComponent(city) }));
-}
-
 async function resolveCity(encoded: string) {
   const target = decodeURIComponent(encoded);
   const cities = await getDistinctCities();
