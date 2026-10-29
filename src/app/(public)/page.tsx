@@ -19,9 +19,14 @@ import { Container } from "@/components/layout/container";
 import { LinkButton } from "@/components/ui/button";
 import { HomeSearchForm } from "@/components/property/home-search-form";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getAgencySettings();
+  return {
+    title: settings.seoDefaultTitle ? { absolute: settings.seoDefaultTitle } : undefined,
+    description: settings.seoDefaultDescription || undefined,
+    alternates: { canonical: "/" },
+  };
+}
 
 const reasons = [
   {
