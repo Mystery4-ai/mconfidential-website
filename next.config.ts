@@ -38,6 +38,11 @@ const nextConfig: NextConfig = {
         hostname: "mconfidential.ma",
         pathname: "/wp-content/uploads/**",
       },
+      {
+        // Listings hotlinked from the agency's Mubawab.ma portal import.
+        protocol: "https",
+        hostname: "www.mubawab-media.com",
+      },
     ],
   },
   turbopack: {
