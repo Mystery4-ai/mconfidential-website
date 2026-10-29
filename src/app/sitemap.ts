@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 import { getDistinctCities } from "@/lib/properties";
+import { neighborhoodDirectory } from "@/lib/neighborhoods";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
 
@@ -30,6 +31,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  const neighborhoodPages: MetadataRoute.Sitemap = neighborhoodDirectory.flatMap((group) =>
+    group.neighborhoods.map((n) => ({
+      url: `${SITE_URL}/quartiers/${encodeURIComponent(group.city)}/${encodeURIComponent(n)}`,
+      changeFrequency: "daily" as const,
+      priority: 0.75,
+    }))
+  );
+
   const propertyPages: MetadataRoute.Sitemap = properties.map((p) => ({
     url: `${SITE_URL}/biens/${p.slug}`,
     lastModified: p.updatedAt,
@@ -37,5 +46,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...cityPages, ...propertyPages];
+  return [...staticPages, ...cityPages, ...neighborhoodPages, ...propertyPages];
 }

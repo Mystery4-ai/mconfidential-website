@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils, BadgeCheck } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/social-icons";
@@ -251,7 +252,19 @@ export default async function PropertyDetailPage({
             {neighborhoodProfile && (
               <div className="mt-8">
                 <h2 className="font-serif text-xl">
-                  Le quartier {property.neighborhood ? `— ${property.neighborhood}` : ""}
+                  {property.neighborhood ? (
+                    <>
+                      Le quartier —{" "}
+                      <Link
+                        href={`/quartiers/${encodeURIComponent(property.city)}/${encodeURIComponent(property.neighborhood)}`}
+                        className="underline decoration-border underline-offset-4 hover:decoration-charcoal"
+                      >
+                        {property.neighborhood}
+                      </Link>
+                    </>
+                  ) : (
+                    "Le quartier"
+                  )}
                 </h2>
                 <p className="mt-3 leading-relaxed text-charcoal-soft">{neighborhoodProfile.story}</p>
 

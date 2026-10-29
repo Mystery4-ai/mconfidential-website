@@ -198,7 +198,7 @@ export default async function HomePage() {
                   {neighborhoods.map((n) => (
                     <li key={n}>
                       <Link
-                        href={`/biens?city=${encodeURIComponent(city)}&neighborhood=${encodeURIComponent(n)}`}
+                        href={`/quartiers/${encodeURIComponent(city)}/${encodeURIComponent(n)}`}
                         className="text-sm text-charcoal-soft hover:text-charcoal"
                       >
                         {n}
