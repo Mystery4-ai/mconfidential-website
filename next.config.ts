@@ -20,13 +20,43 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // The previous WordPress site served listings at /property/{slug}/.
-      // Migrated listings keep the same slug under the new /biens/ path.
+      // --- Redirects from the previous WordPress/Houzez site (mconfidential.ma) ---
+      // Only real, content-bearing old URLs are mapped below. The old site also
+      // had ~20 unused Houzez theme demo pages (layout-full-width, home-splash,
+      // with-parallax, sample-page, fake "agent" bios, etc.) and empty category
+      // archives — those never had real content or backlink value, so they're
+      // deliberately left to 404 rather than redirected.
+
+      // Listings kept their WordPress slug under the new /biens/ path.
       {
         source: "/property/:slug",
         destination: "/biens/:slug",
         permanent: true,
       },
+
+      // Property type archives → equivalent filtered search on the new site.
+      { source: "/property-type/appartement", destination: "/biens?type=APARTMENT", permanent: true },
+      { source: "/property-type/maison", destination: "/biens?type=HOUSE", permanent: true },
+      { source: "/property-type/villa", destination: "/biens?type=VILLA", permanent: true },
+      { source: "/property-type/ryad", destination: "/biens?type=RIAD", permanent: true },
+      { source: "/property-type/studio", destination: "/biens", permanent: true }, // no dedicated "studio" type on the new site
+
+      // Real content pages → closest equivalent on the new site.
+      { source: "/about-us", destination: "/agence", permanent: true },
+      { source: "/a-propos-de-nous", destination: "/agence", permanent: true },
+      { source: "/presentation", destination: "/agence", permanent: true },
+      { source: "/our-agents", destination: "/agence", permanent: true },
+      { source: "/vendre", destination: "/estimation", permanent: true },
+      { source: "/contact-fr", destination: "/contact", permanent: true },
+      { source: "/conciergerie", destination: "/agence", permanent: true }, // no dedicated page yet
+      { source: "/actualites", destination: "/guides", permanent: true },
+      { source: "/blog", destination: "/guides", permanent: true },
+
+      // The 3 real blog posts have no matching article on the new site yet —
+      // send them to the guides index rather than a mismatched specific guide.
+      { source: "/honoraires-dagence-immobiliere-au-maroc-ce-quil-faut-savoir", destination: "/guides", permanent: true },
+      { source: "/les-meilleures-ecoles-internationales-a-casablanca-dar-bouazza", destination: "/guides", permanent: true },
+      { source: "/10-raisons-de-sexpatrier-au-maroc", destination: "/guides", permanent: true },
     ];
   },
   images: {
