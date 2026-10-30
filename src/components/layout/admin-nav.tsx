@@ -11,6 +11,7 @@ const baseLinks: NavLink[] = [
   { href: "/admin/properties", label: "Biens" },
   { href: "/admin/availability", label: "Disponibilités" },
   { href: "/admin/inquiries", label: "Demandes" },
+  { href: "/admin/profile", label: "Mon profil" },
 ];
 
 const adminOnlyLinks: NavLink[] = [

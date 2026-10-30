@@ -84,6 +84,25 @@ model User {
   properties        Property[]         @relation("PropertyConsultant")
   inquiries         Inquiry[]          @relation("InquiryConsultant")
   availabilitySlots AvailabilitySlot[]
+  sentInvites       Invite[]
+}
+
+/**
+ * A pending team invitation. Admin creates one (name/email/role) and gets a
+ * shareable link — no email-sending service required. The invitee opens the
+ * link, sets their own password, and the Invite is consumed (deleted) as
+ * their real User account is created.
+ */
+model Invite {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  role        Role
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  invitedById String
+  invitedBy   User     @relation(fields: [invitedById], references: [id], onDelete: Cascade)
 }
 
 model Property {
