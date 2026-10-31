@@ -5,6 +5,13 @@ import { neighborhoodDirectory } from "@/lib/neighborhoods";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
 
+// Render per-request instead of prerendering at build time. Prerendering
+// means hitting the DB during the Vercel build step, and a cold/sleeping
+// Neon compute timing out there fails the entire deployment (this is why
+// two recent deploys errored out with nothing actually wrong in the code).
+// Also keeps the sitemap always in sync with newly published properties.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [properties, cities] = await Promise.all([
     db.property.findMany({
