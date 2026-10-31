@@ -10,22 +10,23 @@ import { put, del } from "@vercel/blob";
  * storage for local dev, so `npm run dev` works with no extra setup.
  */
 const useBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "properties");
+const UPLOAD_ROOT = path.join(process.cwd(), "public", "uploads");
 
-export async function saveUploadedImage(file: File): Promise<string> {
+export async function saveUploadedImage(file: File, folder: string = "properties"): Promise<string> {
   const ext = (file.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
   const filename = `${randomUUID()}.${ext}`;
 
   if (useBlob) {
-    const blob = await put(`properties/${filename}`, file, { access: "public" });
+    const blob = await put(`${folder}/${filename}`, file, { access: "public" });
     return blob.url;
   }
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-  const filePath = path.join(UPLOAD_DIR, filename);
+  const uploadDir = path.join(UPLOAD_ROOT, folder);
+  await mkdir(uploadDir, { recursive: true });
+  const filePath = path.join(uploadDir, filename);
   const buffer = Buffer.from(await file.arrayBuffer());
   await writeFile(filePath, buffer);
-  return `/uploads/properties/${filename}`;
+  return `/uploads/${folder}/${filename}`;
 }
 
 export async function deleteUploadedImage(url: string) {

@@ -218,8 +218,9 @@ model AvailabilitySlot {
 model AgencySettings {
   id Int @id @default(1)
 
-  agencyName String @default("M. Confidential")
+  agencyName String  @default("M. Confidential")
   tagline    String?
+  logoUrl    String?
 
   phone    String?
   whatsapp String?

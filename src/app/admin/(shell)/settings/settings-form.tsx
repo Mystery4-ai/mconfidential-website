@@ -3,11 +3,13 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea, FormError, FormSuccess } from "@/components/ui/field";
+import { Logo } from "@/components/layout/logo";
 import { updateSettings, SettingsFormState } from "./actions";
 
 type Settings = {
   agencyName: string;
   tagline: string | null;
+  logoUrl: string | null;
   phone: string | null;
   whatsapp: string | null;
   email: string | null;
@@ -42,6 +44,26 @@ export function SettingsForm({ settings }: { settings: Settings }) {
             <Label htmlFor="tagline">Accroche</Label>
             <Input id="tagline" name="tagline" defaultValue={settings.tagline ?? ""} />
           </div>
+        </div>
+
+        <div className="mt-4">
+          <Label htmlFor="logo">Logo</Label>
+          {settings.logoUrl && (
+            <div className="mb-3 flex items-center gap-3 border border-border bg-white/40 p-3">
+              <Logo logoUrl={settings.logoUrl} agencyName={settings.agencyName} />
+            </div>
+          )}
+          <input
+            type="file"
+            id="logo"
+            name="logo"
+            accept="image/*"
+            className="block w-full text-sm text-charcoal-soft file:mr-4 file:border-0 file:bg-charcoal file:px-4 file:py-2 file:text-sm file:font-medium file:text-ivory"
+          />
+          <p className="mt-1.5 text-xs text-charcoal-soft">
+            Remplace le monogramme par défaut dans l’en-tête et le pied de page du site. Format
+            paysage recommandé, fond transparent (PNG/SVG) de préférence.
+          </p>
         </div>
       </section>
 

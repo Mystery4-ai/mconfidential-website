@@ -7,6 +7,7 @@ export async function getAgencySettings() {
       id: 1,
       agencyName: "M. Confidential",
       tagline: null,
+      logoUrl: null,
       phone: null,
       whatsapp: null,
       email: null,

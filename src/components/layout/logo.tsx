@@ -29,16 +29,29 @@ export function Logo({
   className,
   tagline = true,
   markClassName,
+  logoUrl,
+  agencyName = "Confidential",
 }: {
   className?: string;
   tagline?: boolean;
   markClassName?: string;
+  logoUrl?: string | null;
+  agencyName?: string;
 }) {
+  // When a logo image has been uploaded in the backoffice, it replaces the
+  // built-in hand-drawn mark + wordmark entirely.
+  if (logoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- arbitrary external/blob URL, no next/image domain config needed
+      <img src={logoUrl} alt={agencyName} className={cn("h-9 w-auto object-contain", className)} />
+    );
+  }
+
   return (
     <span className={cn("inline-flex items-center gap-3", className)}>
       <LogoMark className={cn("h-7 w-8 shrink-0", markClassName)} />
       <span className="flex flex-col leading-none">
-        <span className="font-serif text-xl tracking-tight">Confidential</span>
+        <span className="font-serif text-xl tracking-tight">{agencyName}</span>
         {tagline && (
           <span className="mt-1 text-[0.6rem] font-medium uppercase tracking-[0.2em] opacity-70">
             Real Estate | Maroc

@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { requireAdminAction } from "@/lib/auth-helpers";
+import { saveUploadedImage } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -36,9 +37,14 @@ export async function updateSettings(
     return { error: parsed.error.issues[0]?.message || "Formulaire invalide." };
   }
 
-  const data = Object.fromEntries(
+  const data: Record<string, string | null> = Object.fromEntries(
     Object.entries(parsed.data).map(([k, v]) => [k, v || null])
   );
+
+  const logo = formData.get("logo");
+  if (logo instanceof File && logo.size > 0) {
+    data.logoUrl = await saveUploadedImage(logo, "branding");
+  }
 
   await db.agencySettings.upsert({
     where: { id: 1 },

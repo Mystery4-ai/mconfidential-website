@@ -4,6 +4,8 @@ import { Logo } from "./logo";
 import { FacebookIcon, InstagramIcon } from "@/components/ui/social-icons";
 
 type FooterSettings = {
+  agencyName?: string;
+  logoUrl?: string | null;
   phone?: string | null;
   email?: string | null;
   address?: string | null;
@@ -26,7 +28,7 @@ export function SiteFooter({
       <Container className="grid gap-10 py-14 sm:grid-cols-2 md:grid-cols-5">
         <div>
           <Link href="/" className="text-charcoal">
-            <Logo />
+            <Logo logoUrl={settings.logoUrl} agencyName={settings.agencyName} />
           </Link>
           <p className="mt-4 text-sm leading-relaxed text-charcoal-soft">
             Agence immobilière Maroc — Casablanca &amp; Dar Bouazza.
