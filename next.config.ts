@@ -73,6 +73,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "www.mubawab-media.com",
       },
+      {
+        // Listings hotlinked from the agency's Nestpro CRM.
+        protocol: "https",
+        hostname: "nestpro.s3.eu-west-3.amazonaws.com",
+      },
     ],
   },
   turbopack: {
