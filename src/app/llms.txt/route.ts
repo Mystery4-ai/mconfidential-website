@@ -13,14 +13,40 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
  * never hardcoded, so it can't drift out of date or state anything unreal.
  */
 export async function GET() {
-  const [settings, cities, propertyCount] = await Promise.all([
+  const [settings, cities, propertyCount, listings] = await Promise.all([
     getAgencySettings(),
     getDistinctCities(),
     db.property.count({ where: { status: "PUBLISHED" } }),
+    db.property.findMany({
+      where: { status: "PUBLISHED" },
+      select: {
+        title: true,
+        slug: true,
+        price: true,
+        currency: true,
+        transactionType: true,
+        propertyType: true,
+        city: true,
+        neighborhood: true,
+        bedrooms: true,
+      },
+      orderBy: { publishedAt: "desc" },
+      take: 60,
+    }),
   ]);
 
   const neighborhoodLines = neighborhoodDirectory
     .map((g) => `  - ${g.city}: ${g.neighborhoods.join(", ")}`)
+    .join("\n");
+
+  const listingLines = listings
+    .map((p) => {
+      const transaction = p.transactionType === "RENT" ? "for rent" : "for sale";
+      const price = `${p.price.toLocaleString("en-US")} ${p.currency}${p.transactionType === "RENT" ? "/month" : ""}`;
+      const location = [p.neighborhood, p.city].filter(Boolean).join(", ");
+      const beds = p.bedrooms != null ? `, ${p.bedrooms} bed` : "";
+      return `  - ${p.title} — ${p.propertyType.toLowerCase()} ${transaction}, ${price}, ${location}${beds} — ${SITE_URL}/biens/${p.slug}`;
+    })
     .join("\n");
 
   const lines = [
@@ -47,6 +73,9 @@ export async function GET() {
     `- ${SITE_URL}/estimation — request a property valuation`,
     `- ${SITE_URL}/agence — about the agency`,
     `- ${SITE_URL}/contact — contact the agency`,
+    "",
+    `## Current listings (${listings.length} of ${propertyCount} shown)`,
+    listingLines,
     "",
     "## Contact",
     settings.phone ? `Phone: ${settings.phone}` : null,
