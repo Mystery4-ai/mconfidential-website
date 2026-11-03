@@ -51,6 +51,7 @@ export const inquiryTypeLabels: Record<InquiryType, string> = {
   CONTACT: "Contact",
   VISIT: "Demande de visite",
   VALUATION: "Estimation",
+  BROCHURE: "Brochure / prix",
 };
 
 export function formatPrice(price: number, currency: string = "MAD") {

@@ -80,3 +80,62 @@ export async function submitInquiry(
 
   return { success: true };
 }
+
+export const leadGateSchema = z.object({
+  name: z.string().trim().min(2, "Veuillez indiquer votre nom.").max(120),
+  phone: z.string().trim().min(6, "Numéro de téléphone invalide.").max(40),
+  // Honeypot: real users never fill this hidden field.
+  website: z.string().max(0).optional().or(z.literal("")),
+});
+
+export type LeadGateState = { error?: string; success?: boolean };
+
+/**
+ * Lighter-weight lead capture for the brochure/price-grid gate on
+ * new-development project pages — only name + phone, no email or consent
+ * checkbox, to keep friction (and drop-off) as low as possible.
+ */
+export async function submitLeadGate(
+  propertyId: string,
+  formData: FormData
+): Promise<LeadGateState> {
+  const hdrs = await headers();
+  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
+  if (isRateLimited(`lead-gate:${ip}`, 5, 60_000)) {
+    return { error: "Trop de demandes envoyées. Merci de réessayer dans quelques minutes." };
+  }
+
+  const parsed = leadGateSchema.safeParse({
+    name: formData.get("name"),
+    phone: formData.get("phone"),
+    website: formData.get("website"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || "Formulaire invalide." };
+  }
+
+  if (parsed.data.website) {
+    // Honeypot tripped — silently pretend success without writing anything.
+    return { success: true };
+  }
+
+  const property = await db.property.findUnique({
+    where: { id: propertyId },
+    select: { consultantId: true },
+  });
+
+  await db.inquiry.create({
+    data: {
+      type: "BROCHURE",
+      name: parsed.data.name,
+      phone: parsed.data.phone,
+      propertyId,
+      assignedConsultantId: property?.consultantId ?? null,
+      consentGiven: true,
+    },
+  });
+
+  return { success: true };
+}

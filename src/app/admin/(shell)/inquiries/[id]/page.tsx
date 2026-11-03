@@ -46,10 +46,12 @@ export default async function InquiryDetailPage({
           <section className="border border-border bg-white/40 p-5">
             <h2 className="font-serif text-lg">Coordonnées</h2>
             <dl className="mt-3 space-y-1.5 text-sm">
-              <div className="flex gap-2">
-                <dt className="w-20 text-charcoal-soft">Email</dt>
-                <dd className="text-charcoal">{inquiry.email}</dd>
-              </div>
+              {inquiry.email && (
+                <div className="flex gap-2">
+                  <dt className="w-20 text-charcoal-soft">Email</dt>
+                  <dd className="text-charcoal">{inquiry.email}</dd>
+                </div>
+              )}
               {inquiry.phone && (
                 <div className="flex gap-2">
                   <dt className="w-20 text-charcoal-soft">Téléphone</dt>

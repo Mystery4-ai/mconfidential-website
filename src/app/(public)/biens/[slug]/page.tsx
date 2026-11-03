@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Fragment } from "react";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils, BadgeCheck, FileText, Download } from "lucide-react";
+import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils, BadgeCheck, FileText } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/social-icons";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/cn";
@@ -24,6 +24,7 @@ import { VisitForm } from "@/components/property/visit-form";
 import { SlotPicker } from "@/components/property/slot-picker";
 import { SchedulingEmbed } from "@/components/property/scheduling-embed";
 import { MobileContactBar } from "@/components/property/mobile-contact-bar";
+import { NewDevelopmentGate } from "@/components/property/new-development-gate";
 import { ShareButton } from "@/components/property/share-button";
 import { NeighborhoodMap } from "@/components/property/neighborhood-map";
 import { Breadcrumbs, breadcrumbJsonLd } from "@/components/ui/breadcrumbs";
@@ -90,6 +91,9 @@ export default async function PropertyDetailPage({
     property = await getPropertyBySlug(slug);
     if (!property) notFound();
   }
+
+  const cookieStore = await cookies();
+  const leadUnlocked = cookieStore.get(`lead_unlocked_${property.id}`)?.value === "1";
 
   const [similar, settings, availableSlots, consultantListingCount] = await Promise.all([
     getSimilarProperties(property),
@@ -257,34 +261,8 @@ export default async function PropertyDetailPage({
               <div className="mt-8">
                 <h2 className="font-serif text-xl">Projet neuf</h2>
 
-                {property.brochureUrl && (
-                  <a
-                    href={property.brochureUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group mt-4 flex items-center gap-4 rounded-sm border border-border bg-white/40 p-5 shadow-sm transition-colors hover:border-charcoal"
-                  >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-charcoal text-ivory">
-                      <FileText size={18} strokeWidth={1.5} />
-                    </span>
-                    <span>
-                      <span className="block text-sm font-medium text-charcoal">
-                        Brochure du projet
-                      </span>
-                      <span className="block text-xs text-charcoal-soft">
-                        Prestations, plans et grille tarifaire — PDF
-                      </span>
-                    </span>
-                    <Download
-                      size={16}
-                      strokeWidth={1.5}
-                      className="ml-auto shrink-0 text-charcoal-soft transition-transform group-hover:translate-y-0.5"
-                    />
-                  </a>
-                )}
-
                 {property.floorPlans.length > 0 && (
-                  <div className="mt-5">
+                  <div className="mt-4">
                     <h3 className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
                       Plans par étage
                     </h3>
@@ -305,60 +283,15 @@ export default async function PropertyDetailPage({
                   </div>
                 )}
 
-                {property.units.length > 0 && (
-                  <div className="mt-5">
-                    <div className="flex items-baseline justify-between">
-                      <h3 className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
-                        Grille des lots
-                      </h3>
-                      <span className="text-xs text-charcoal-soft">
-                        {property.units.length} lots disponibles
-                      </span>
-                    </div>
-                    <div className="mt-2 overflow-x-auto rounded-sm border border-border bg-white/40 shadow-sm">
-                      <table className="w-full min-w-[520px] text-sm">
-                        <thead>
-                          <tr className="border-b border-border bg-ivory-dim text-left text-xs uppercase tracking-wide text-charcoal-soft">
-                            <th className="px-4 py-3 font-medium">Lot</th>
-                            <th className="px-4 py-3 font-medium">Surface</th>
-                            <th className="px-4 py-3 font-medium">Terrasse</th>
-                            <th className="px-4 py-3 text-right font-medium">Prix</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {property.units.map((u, i) => {
-                            const showFloorHeader =
-                              i === 0 || u.floorLabel !== property.units[i - 1].floorLabel;
-                            return (
-                              <Fragment key={u.id}>
-                                {showFloorHeader && (
-                                  <tr>
-                                    <td
-                                      colSpan={4}
-                                      className="bg-ivory-dim/60 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-charcoal-soft"
-                                    >
-                                      {u.floorLabel}
-                                    </td>
-                                  </tr>
-                                )}
-                                <tr className="border-b border-border text-charcoal-soft last:border-0 hover:bg-ivory-dim/40">
-                                  <td className="px-4 py-2.5">Lot {u.lotNumber}</td>
-                                  <td className="px-4 py-2.5">{formatSurface(u.surfaceArea)}</td>
-                                  <td className="px-4 py-2.5">
-                                    {u.terraceArea != null ? formatSurface(u.terraceArea) : "—"}
-                                  </td>
-                                  <td className="px-4 py-2.5 text-right font-medium text-charcoal">
-                                    {formatPrice(u.price, property.currency)}
-                                  </td>
-                                </tr>
-                              </Fragment>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
+                <div className="mt-5">
+                  <NewDevelopmentGate
+                    propertyId={property.id}
+                    brochureUrl={property.brochureUrl}
+                    units={property.units}
+                    currency={property.currency}
+                    initialUnlocked={leadUnlocked}
+                  />
+                </div>
               </div>
             )}
 

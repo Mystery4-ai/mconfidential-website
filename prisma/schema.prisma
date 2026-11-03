@@ -52,6 +52,7 @@ enum InquiryType {
   CONTACT
   VISIT
   VALUATION
+  BROCHURE
 }
 
 enum InquiryStatus {
@@ -203,7 +204,7 @@ model Inquiry {
   type InquiryType
 
   name    String
-  email   String
+  email   String? // optional — the brochure/price-grid lead gate only collects name + phone
   phone   String?
   message String?
 

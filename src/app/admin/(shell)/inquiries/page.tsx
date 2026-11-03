@@ -86,7 +86,8 @@ export default async function InquiriesPage({
                     >
                       {inq.name}
                     </Link>
-                    <p className="text-xs text-charcoal-soft">{inq.email}</p>
+                    {inq.email && <p className="text-xs text-charcoal-soft">{inq.email}</p>}
+                    {inq.phone && <p className="text-xs text-charcoal-soft">{inq.phone}</p>}
                   </td>
                   <td className="p-3 text-charcoal-soft">{inquiryTypeLabels[inq.type]}</td>
                   <td className="p-3 text-charcoal-soft">
