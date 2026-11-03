@@ -1,7 +1,7 @@
 /**
  * One-off: populate the real 24-lot pricing grid for the Palmier new-
  * development project, transcribed from the agency's own price-list photos.
- * Prices are the original figures rounded UP to the nearest 10,000 MAD.
+ * Prices are the original figures +5%, rounded UP to the nearest 10,000 MAD.
  * Run with: npx tsx prisma/seed-palmier-units.ts
  */
 import { PrismaClient } from "@prisma/client";
@@ -17,33 +17,33 @@ const units: {
   terraceArea: number | null;
   price: number;
 }[] = [
-  { floorLabel: "1er étage", lotNumber: 1, surfaceArea: 64, terraceArea: null, price: 1_610_000 },
-  { floorLabel: "1er étage", lotNumber: 2, surfaceArea: 58, terraceArea: null, price: 1_470_000 },
-  { floorLabel: "1er étage", lotNumber: 3, surfaceArea: 42, terraceArea: 13, price: 1_340_000 },
-  { floorLabel: "1er étage", lotNumber: 4, surfaceArea: 70, terraceArea: 16, price: 1_870_000 },
-  { floorLabel: "1er étage", lotNumber: 5, surfaceArea: 69, terraceArea: 15, price: 1_920_000 },
-  { floorLabel: "1er étage", lotNumber: 6, surfaceArea: 66, terraceArea: null, price: 1_660_000 },
+  { floorLabel: "1er étage", lotNumber: 1, surfaceArea: 64, terraceArea: null, price: 1_700_000 },
+  { floorLabel: "1er étage", lotNumber: 2, surfaceArea: 58, terraceArea: null, price: 1_550_000 },
+  { floorLabel: "1er étage", lotNumber: 3, surfaceArea: 42, terraceArea: 13, price: 1_410_000 },
+  { floorLabel: "1er étage", lotNumber: 4, surfaceArea: 70, terraceArea: 16, price: 1_970_000 },
+  { floorLabel: "1er étage", lotNumber: 5, surfaceArea: 69, terraceArea: 15, price: 2_020_000 },
+  { floorLabel: "1er étage", lotNumber: 6, surfaceArea: 66, terraceArea: null, price: 1_750_000 },
 
-  { floorLabel: "2e étage", lotNumber: 7, surfaceArea: 65, terraceArea: null, price: 1_640_000 },
-  { floorLabel: "2e étage", lotNumber: 8, surfaceArea: 58, terraceArea: null, price: 1_470_000 },
-  { floorLabel: "2e étage", lotNumber: 9, surfaceArea: 43, terraceArea: null, price: 1_200_000 },
-  { floorLabel: "2e étage", lotNumber: 10, surfaceArea: 70, terraceArea: 7, price: 1_850_000 },
-  { floorLabel: "2e étage", lotNumber: 11, surfaceArea: 69, terraceArea: null, price: 1_740_000 },
-  { floorLabel: "2e étage", lotNumber: 12, surfaceArea: 66, terraceArea: null, price: 1_660_000 },
+  { floorLabel: "2e étage", lotNumber: 7, surfaceArea: 65, terraceArea: null, price: 1_730_000 },
+  { floorLabel: "2e étage", lotNumber: 8, surfaceArea: 58, terraceArea: null, price: 1_550_000 },
+  { floorLabel: "2e étage", lotNumber: 9, surfaceArea: 43, terraceArea: null, price: 1_260_000 },
+  { floorLabel: "2e étage", lotNumber: 10, surfaceArea: 70, terraceArea: 7, price: 1_950_000 },
+  { floorLabel: "2e étage", lotNumber: 11, surfaceArea: 69, terraceArea: null, price: 1_830_000 },
+  { floorLabel: "2e étage", lotNumber: 12, surfaceArea: 66, terraceArea: null, price: 1_750_000 },
 
-  { floorLabel: "3e étage", lotNumber: 13, surfaceArea: 64, terraceArea: null, price: 1_610_000 },
-  { floorLabel: "3e étage", lotNumber: 14, surfaceArea: 57, terraceArea: null, price: 1_450_000 },
-  { floorLabel: "3e étage", lotNumber: 15, surfaceArea: 39, terraceArea: null, price: 1_090_000 },
-  { floorLabel: "3e étage", lotNumber: 16, surfaceArea: 61, terraceArea: 16, price: 1_670_000 },
-  { floorLabel: "3e étage", lotNumber: 17, surfaceArea: 72, terraceArea: 9, price: 2_020_000 },
-  { floorLabel: "3e étage", lotNumber: 18, surfaceArea: 62, terraceArea: null, price: 1_570_000 },
+  { floorLabel: "3e étage", lotNumber: 13, surfaceArea: 64, terraceArea: null, price: 1_700_000 },
+  { floorLabel: "3e étage", lotNumber: 14, surfaceArea: 57, terraceArea: null, price: 1_530_000 },
+  { floorLabel: "3e étage", lotNumber: 15, surfaceArea: 39, terraceArea: null, price: 1_150_000 },
+  { floorLabel: "3e étage", lotNumber: 16, surfaceArea: 61, terraceArea: 16, price: 1_760_000 },
+  { floorLabel: "3e étage", lotNumber: 17, surfaceArea: 72, terraceArea: 9, price: 2_130_000 },
+  { floorLabel: "3e étage", lotNumber: 18, surfaceArea: 62, terraceArea: null, price: 1_650_000 },
 
-  { floorLabel: "4e étage", lotNumber: 19, surfaceArea: 64, terraceArea: null, price: 1_610_000 },
-  { floorLabel: "4e étage", lotNumber: 20, surfaceArea: 57, terraceArea: null, price: 1_450_000 },
-  { floorLabel: "4e étage", lotNumber: 21, surfaceArea: 39, terraceArea: null, price: 1_090_000 },
-  { floorLabel: "4e étage", lotNumber: 22, surfaceArea: 61, terraceArea: 11, price: 1_610_000 },
-  { floorLabel: "4e étage", lotNumber: 23, surfaceArea: 72, terraceArea: 9, price: 2_020_000 },
-  { floorLabel: "4e étage", lotNumber: 24, surfaceArea: 62, terraceArea: null, price: 1_570_000 },
+  { floorLabel: "4e étage", lotNumber: 19, surfaceArea: 64, terraceArea: null, price: 1_700_000 },
+  { floorLabel: "4e étage", lotNumber: 20, surfaceArea: 57, terraceArea: null, price: 1_530_000 },
+  { floorLabel: "4e étage", lotNumber: 21, surfaceArea: 39, terraceArea: null, price: 1_150_000 },
+  { floorLabel: "4e étage", lotNumber: 22, surfaceArea: 61, terraceArea: 11, price: 1_700_000 },
+  { floorLabel: "4e étage", lotNumber: 23, surfaceArea: 72, terraceArea: 9, price: 2_130_000 },
+  { floorLabel: "4e étage", lotNumber: 24, surfaceArea: 62, terraceArea: null, price: 1_650_000 },
 ];
 
 async function main() {

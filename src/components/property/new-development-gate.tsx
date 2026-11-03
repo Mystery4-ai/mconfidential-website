@@ -111,7 +111,7 @@ export function NewDevelopmentGate({
                 </span>
               )}
               <span>
-                <span className="block text-sm font-medium text-charcoal">Grille des lots</span>
+                <span className="block text-sm font-medium text-charcoal">Lots disponibles</span>
                 <span className="block text-xs text-charcoal-soft">
                   {unlocked
                     ? `${units.length} lots disponibles`
