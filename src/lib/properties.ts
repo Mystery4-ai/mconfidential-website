@@ -43,6 +43,7 @@ const cardSelect = {
   surfaceArea: true,
   bedrooms: true,
   bathrooms: true,
+  isNewDevelopment: true,
   images: {
     select: { url: true, altText: true },
     orderBy: { position: "asc" as const },
@@ -94,6 +95,8 @@ export async function getFeaturedProperties(limit = 6) {
 
 const propertyDetailInclude = {
   images: { orderBy: { position: "asc" as const } },
+  floorPlans: { orderBy: { position: "asc" as const } },
+  units: { orderBy: [{ floorLabel: "asc" as const }, { lotNumber: "asc" as const }] },
   consultant: {
     select: {
       id: true,

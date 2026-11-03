@@ -26,6 +26,7 @@ export type PropertyInitialValues = {
   features: string[] | null;
   consultantId: string;
   featured?: boolean;
+  isNewDevelopment?: boolean;
 };
 
 export function PropertyForm({
@@ -107,6 +108,15 @@ export function PropertyForm({
             />
           </div>
         </div>
+        <label className="mt-4 flex items-center gap-2 text-sm text-charcoal">
+          <input
+            type="checkbox"
+            name="isNewDevelopment"
+            defaultChecked={initialValues?.isNewDevelopment ?? false}
+          />
+          Projet neuf (affiche un badge « Projet neuf » et active la brochure, les plans et la
+          grille des lots ci-dessous une fois le bien enregistré)
+        </label>
       </section>
 
       <section>

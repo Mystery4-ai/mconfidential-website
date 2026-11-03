@@ -7,6 +7,9 @@ import { PropertyForm } from "../../property-form";
 import { updateProperty } from "../../actions";
 import { ImageManager } from "./image-manager";
 import { StatusActions } from "./status-actions";
+import { BrochureManager } from "./brochure-manager";
+import { FloorPlanManager } from "./floor-plan-manager";
+import { UnitsManager } from "./units-manager";
 import { PropertyStatusBadge } from "@/components/ui/status-badge";
 
 export default async function EditPropertyPage({
@@ -19,7 +22,11 @@ export default async function EditPropertyPage({
 
   const property = await db.property.findFirst({
     where: propertyOwnerWhere(user, id),
-    include: { images: { orderBy: { position: "asc" } } },
+    include: {
+      images: { orderBy: { position: "asc" } },
+      floorPlans: { orderBy: { position: "asc" } },
+      units: { orderBy: [{ floorLabel: "asc" }, { lotNumber: "asc" }] },
+    },
   });
   if (!property) notFound();
 
@@ -84,6 +91,31 @@ export default async function EditPropertyPage({
           />
         </div>
       </div>
+
+      {property.isNewDevelopment && (
+        <div className="mt-10 max-w-3xl space-y-10">
+          <div>
+            <h2 className="font-serif text-lg">Brochure</h2>
+            <div className="mt-4">
+              <BrochureManager propertyId={property.id} brochureUrl={property.brochureUrl} />
+            </div>
+          </div>
+
+          <div>
+            <h2 className="font-serif text-lg">Plans par étage</h2>
+            <div className="mt-4">
+              <FloorPlanManager propertyId={property.id} floorPlans={property.floorPlans} />
+            </div>
+          </div>
+
+          <div>
+            <h2 className="font-serif text-lg">Grille des lots</h2>
+            <div className="mt-4">
+              <UnitsManager propertyId={property.id} units={property.units} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -135,10 +135,18 @@ model Property {
 
   features Json? // string[] of feature labels
 
+  // New-development ("off-plan") project listings: a single Property acts as
+  // the project page, with its own brochure, per-floor plans, and a lot
+  // pricing grid, instead of representing one specific unit.
+  isNewDevelopment Boolean @default(false)
+  brochureUrl      String?
+
   consultantId String
   consultant   User   @relation("PropertyConsultant", fields: [consultantId], references: [id])
 
-  images Image[]
+  images     Image[]
+  floorPlans FloorPlan[]
+  units      ProjectUnit[]
 
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
@@ -158,6 +166,34 @@ model Image {
   altText    String?
   position   Int      @default(0)
   createdAt  DateTime @default(now())
+
+  @@index([propertyId])
+}
+
+// One downloadable plan per floor of a new-development project.
+model FloorPlan {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  label      String // e.g. "Rez-de-chaussée", "1er étage"
+  url        String
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
+}
+
+// One sellable lot in a new-development project's pricing grid.
+model ProjectUnit {
+  id          String   @id @default(cuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  floorLabel  String // e.g. "1er étage"
+  lotNumber   Int
+  surfaceArea Int // m² habitable
+  terraceArea Int? // m² terrasse/balcon, when the lot has one
+  price       Int // MAD
+  position    Int      @default(0)
 
   @@index([propertyId])
 }

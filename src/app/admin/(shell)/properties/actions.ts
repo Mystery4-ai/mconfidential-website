@@ -76,6 +76,7 @@ export async function createProperty(
       consultantId,
       status: "DRAFT",
       featured: user.role === "ADMIN" && formData.get("featured") === "on",
+      isNewDevelopment: formData.get("isNewDevelopment") === "on",
     },
   });
 
@@ -119,6 +120,7 @@ export async function updateProperty(
       yearBuilt: numOrUndefined(formData.get("yearBuilt")),
       features: parseFeatures(parsed.data.features),
       consultantId,
+      isNewDevelopment: formData.get("isNewDevelopment") === "on",
       ...(user.role === "ADMIN" ? { featured: formData.get("featured") === "on" } : {}),
     },
   });
@@ -228,4 +230,117 @@ export async function reorderImages(propertyId: string, orderedIds: string[]) {
     )
   );
   revalidatePath(`/admin/properties/${propertyId}/edit`);
+}
+
+export async function uploadBrochure(propertyId: string, formData: FormData) {
+  const { property } = await assertOwnedOrAdmin(propertyId);
+  const file = formData.get("brochure");
+  if (!(file instanceof File) || file.size === 0) return;
+
+  const url = await saveUploadedImage(file, "documents");
+  if (property.brochureUrl) await deleteUploadedImage(property.brochureUrl);
+  await db.property.update({ where: { id: propertyId }, data: { brochureUrl: url } });
+
+  revalidatePath(`/admin/properties/${propertyId}/edit`);
+  revalidatePath(`/biens/${property.slug}`);
+}
+
+export async function deleteBrochure(propertyId: string) {
+  const { property } = await assertOwnedOrAdmin(propertyId);
+  if (!property.brochureUrl) return;
+
+  await deleteUploadedImage(property.brochureUrl);
+  await db.property.update({ where: { id: propertyId }, data: { brochureUrl: null } });
+
+  revalidatePath(`/admin/properties/${propertyId}/edit`);
+  revalidatePath(`/biens/${property.slug}`);
+}
+
+export async function uploadFloorPlans(propertyId: string, formData: FormData) {
+  const { property } = await assertOwnedOrAdmin(propertyId);
+  const files = formData.getAll("floorPlans").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) return;
+
+  const existingCount = await db.floorPlan.count({ where: { propertyId } });
+
+  let position = existingCount;
+  for (const file of files) {
+    const url = await saveUploadedImage(file, "floor-plans");
+    const label = file.name.replace(/\.pdf$/i, "").trim();
+    await db.floorPlan.create({
+      data: { propertyId, url, label: label || "Plan", position: position++ },
+    });
+  }
+
+  revalidatePath(`/admin/properties/${propertyId}/edit`);
+  revalidatePath(`/biens/${property.slug}`);
+}
+
+export async function deleteFloorPlan(propertyId: string, floorPlanId: string) {
+  const { property } = await assertOwnedOrAdmin(propertyId);
+  const plan = await db.floorPlan.findFirst({ where: { id: floorPlanId, propertyId } });
+  if (!plan) return;
+
+  await db.floorPlan.delete({ where: { id: floorPlanId } });
+  await deleteUploadedImage(plan.url);
+
+  revalidatePath(`/admin/properties/${propertyId}/edit`);
+  revalidatePath(`/biens/${property.slug}`);
+}
+
+export type UnitsFormState = { error?: string; success?: boolean };
+
+/**
+ * Parses the bulk "one lot per line" textarea format:
+ * étage | lot | surface (m²) | terrasse (m², optional) | prix (MAD)
+ * Replaces the full lot grid for the property on each save — matches how
+ * agencies actually maintain these (re-pasting an updated price list).
+ */
+export async function saveProjectUnits(
+  propertyId: string,
+  _prevState: UnitsFormState,
+  formData: FormData
+): Promise<UnitsFormState> {
+  const { property } = await assertOwnedOrAdmin(propertyId);
+  const raw = String(formData.get("units") || "");
+
+  const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+  const units: {
+    floorLabel: string;
+    lotNumber: number;
+    surfaceArea: number;
+    terraceArea: number | null;
+    price: number;
+  }[] = [];
+
+  for (const line of lines) {
+    const parts = line.split("|").map((p) => p.trim());
+    if (parts.length !== 5) {
+      return {
+        error: `Ligne invalide : "${line}". Format attendu (5 champs) : étage | lot | surface | terrasse | prix`,
+      };
+    }
+    const [floorLabel, lotNumberRaw, surfaceRaw, terraceRaw, priceRaw] = parts;
+    const lotNumber = Number(lotNumberRaw);
+    const surfaceArea = Number(surfaceRaw);
+    const terraceArea = terraceRaw ? Number(terraceRaw) : null;
+    const price = Number(priceRaw);
+    if (!floorLabel || !Number.isFinite(lotNumber) || !Number.isFinite(surfaceArea) || !Number.isFinite(price)) {
+      return {
+        error: `Ligne invalide : "${line}". Format attendu (5 champs) : étage | lot | surface | terrasse | prix`,
+      };
+    }
+    units.push({ floorLabel, lotNumber, surfaceArea, terraceArea, price });
+  }
+
+  await db.$transaction([
+    db.projectUnit.deleteMany({ where: { propertyId } }),
+    db.projectUnit.createMany({
+      data: units.map((u, i) => ({ propertyId, ...u, position: i })),
+    }),
+  ]);
+
+  revalidatePath(`/admin/properties/${propertyId}/edit`);
+  revalidatePath(`/biens/${property.slug}`);
+  return { success: true };
 }

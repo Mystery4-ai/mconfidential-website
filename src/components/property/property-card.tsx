@@ -18,6 +18,7 @@ export type PropertyCardData = {
   surfaceArea: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
+  isNewDevelopment?: boolean;
   coverImage?: { url: string; altText: string | null } | null;
 };
 
@@ -43,8 +44,15 @@ export function PropertyCard({ property }: { property: PropertyCardData }) {
             Photo à venir
           </div>
         )}
-        <span className="absolute left-3 top-3 bg-ivory/90 px-2.5 py-1 text-xs font-medium uppercase tracking-wide text-charcoal">
-          {transactionTypeLabels[property.transactionType]}
+        <span className="absolute left-3 top-3 flex gap-1.5">
+          <span className="bg-ivory/90 px-2.5 py-1 text-xs font-medium uppercase tracking-wide text-charcoal">
+            {transactionTypeLabels[property.transactionType]}
+          </span>
+          {property.isNewDevelopment && (
+            <span className="bg-olive px-2.5 py-1 text-xs font-medium uppercase tracking-wide text-ivory">
+              Projet neuf
+            </span>
+          )}
         </span>
         {notAvailable && (
           <span className="absolute right-3 top-3">

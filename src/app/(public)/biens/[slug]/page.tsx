@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils, BadgeCheck } from "lucide-react";
+import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils, BadgeCheck, FileText } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/social-icons";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/cn";
@@ -188,6 +188,9 @@ export default async function PropertyDetailPage({
           <div className="lg:col-span-2">
             <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-wide text-charcoal-soft">
               <span>{transactionTypeLabels[property.transactionType]}</span>
+              {property.isNewDevelopment && (
+                <span className="bg-olive px-2 py-0.5 text-ivory">Projet neuf</span>
+              )}
               <span>·</span>
               <span>{propertyTypeLabels[property.propertyType]}</span>
               <span>·</span>
@@ -246,6 +249,78 @@ export default async function PropertyDetailPage({
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {property.isNewDevelopment && (
+              <div className="mt-8">
+                <h2 className="font-serif text-xl">Projet neuf</h2>
+
+                {property.brochureUrl && (
+                  <a
+                    href={property.brochureUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex items-center gap-2 border border-charcoal px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-ivory"
+                  >
+                    <FileText size={16} strokeWidth={1.5} /> Télécharger la brochure
+                  </a>
+                )}
+
+                {property.floorPlans.length > 0 && (
+                  <div className="mt-5">
+                    <h3 className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
+                      Plans
+                    </h3>
+                    <div className="mt-2 flex flex-wrap gap-3">
+                      {property.floorPlans.map((plan) => (
+                        <a
+                          key={plan.id}
+                          href={plan.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 border border-border px-3 py-1.5 text-sm text-charcoal underline underline-offset-4"
+                        >
+                          <FileText size={14} strokeWidth={1.5} /> {plan.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {property.units.length > 0 && (
+                  <div className="mt-5 overflow-x-auto">
+                    <h3 className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
+                      Grille des lots
+                    </h3>
+                    <table className="mt-2 w-full min-w-[480px] text-sm">
+                      <thead>
+                        <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-charcoal-soft">
+                          <th className="py-2 pr-3 font-medium">Étage</th>
+                          <th className="py-2 pr-3 font-medium">Lot</th>
+                          <th className="py-2 pr-3 font-medium">Surface</th>
+                          <th className="py-2 pr-3 font-medium">Terrasse</th>
+                          <th className="py-2 font-medium">Prix</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {property.units.map((u) => (
+                          <tr key={u.id} className="border-b border-border text-charcoal-soft last:border-0">
+                            <td className="py-2 pr-3">{u.floorLabel}</td>
+                            <td className="py-2 pr-3">Lot {u.lotNumber}</td>
+                            <td className="py-2 pr-3">{formatSurface(u.surfaceArea)}</td>
+                            <td className="py-2 pr-3">
+                              {u.terraceArea != null ? formatSurface(u.terraceArea) : "—"}
+                            </td>
+                            <td className="py-2 font-medium text-charcoal">
+                              {formatPrice(u.price, property.currency)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 
