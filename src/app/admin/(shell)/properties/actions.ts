@@ -232,12 +232,13 @@ export async function reorderImages(propertyId: string, orderedIds: string[]) {
   revalidatePath(`/admin/properties/${propertyId}/edit`);
 }
 
-export async function uploadBrochure(propertyId: string, formData: FormData) {
+/**
+ * Persists a brochure URL already uploaded directly to Blob storage from the
+ * browser (see /api/blob-upload) — the file itself never passes through
+ * this server, only its resulting URL.
+ */
+export async function saveBrochureUrl(propertyId: string, url: string) {
   const { property } = await assertOwnedOrAdmin(propertyId);
-  const file = formData.get("brochure");
-  if (!(file instanceof File) || file.size === 0) return;
-
-  const url = await saveUploadedImage(file, "documents");
   if (property.brochureUrl) await deleteUploadedImage(property.brochureUrl);
   await db.property.update({ where: { id: propertyId }, data: { brochureUrl: url } });
 
@@ -256,21 +257,16 @@ export async function deleteBrochure(propertyId: string) {
   revalidatePath(`/biens/${property.slug}`);
 }
 
-export async function uploadFloorPlans(propertyId: string, formData: FormData) {
+/**
+ * Persists one floor plan already uploaded directly to Blob storage from
+ * the browser (see /api/blob-upload) — same reasoning as saveBrochureUrl.
+ */
+export async function addFloorPlan(propertyId: string, url: string, label: string) {
   const { property } = await assertOwnedOrAdmin(propertyId);
-  const files = formData.getAll("floorPlans").filter((f): f is File => f instanceof File && f.size > 0);
-  if (files.length === 0) return;
-
   const existingCount = await db.floorPlan.count({ where: { propertyId } });
-
-  let position = existingCount;
-  for (const file of files) {
-    const url = await saveUploadedImage(file, "floor-plans");
-    const label = file.name.replace(/\.pdf$/i, "").trim();
-    await db.floorPlan.create({
-      data: { propertyId, url, label: label || "Plan", position: position++ },
-    });
-  }
+  await db.floorPlan.create({
+    data: { propertyId, url, label: label || "Plan", position: existingCount },
+  });
 
   revalidatePath(`/admin/properties/${propertyId}/edit`);
   revalidatePath(`/biens/${property.slug}`);
