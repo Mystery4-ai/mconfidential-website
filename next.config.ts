@@ -62,10 +62,14 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        // Seed property photos are hotlinked from the live WordPress site
-        // until real images are uploaded through the backoffice.
+        // Seed property photos are hotlinked from the old WordPress site's
+        // media library until real images are uploaded through the
+        // backoffice. Using the sister domain confidentiel.ma, not
+        // mconfidential.ma — the latter now points to this Vercel
+        // deployment (domain migration), so it no longer serves the old
+        // site's files; confidentiel.ma still points at that original host.
         protocol: "https",
-        hostname: "mconfidential.ma",
+        hostname: "confidentiel.ma",
         pathname: "/wp-content/uploads/**",
       },
       {
