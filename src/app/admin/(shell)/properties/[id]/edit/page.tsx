@@ -12,6 +12,13 @@ import { FloorPlanManager } from "./floor-plan-manager";
 import { UnitsManager } from "./units-manager";
 import { PropertyStatusBadge } from "@/components/ui/status-badge";
 
+// Photo/brochure/floor-plan uploads on this page go client → server action
+// → Vercel Blob, a double hop that can exceed the platform's default 10s
+// function timeout on a slow connection or a larger PDF, surfacing in the
+// browser as a generic "load failed". Raises the ceiling to the Hobby-plan
+// max for every Server Action invoked from this route.
+export const maxDuration = 60;
+
 export default async function EditPropertyPage({
   params,
 }: {
