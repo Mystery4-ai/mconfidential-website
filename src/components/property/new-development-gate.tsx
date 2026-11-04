@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { ChevronDown, Download, FileText, Lock } from "lucide-react";
+import { ChevronDown, Lock } from "lucide-react";
 import { Input, Label, FormError } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { DocumentRow } from "./document-row";
 import { formatPrice, formatSurface } from "@/lib/labels";
 import { unlockLeadGateAction } from "@/app/(public)/biens/[slug]/actions";
 import type { LeadGateState } from "@/lib/inquiries";
@@ -56,46 +57,34 @@ export function NewDevelopmentGate({
 
   return (
     <div className="space-y-5">
-      {brochureUrl &&
-        (unlocked ? (
-          <a
-            href={brochureUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="group flex items-center gap-4 rounded-sm border border-border bg-white/40 p-5 shadow-sm transition-colors hover:border-charcoal"
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-charcoal text-ivory">
-              <FileText size={18} strokeWidth={1.5} />
-            </span>
-            <span>
-              <span className="block text-sm font-medium text-charcoal">Brochure du projet</span>
-              <span className="block text-xs text-charcoal-soft">
-                Prestations, plans et grille tarifaire — PDF
-              </span>
-            </span>
-            <Download
-              size={16}
-              strokeWidth={1.5}
-              className="ml-auto shrink-0 text-charcoal-soft transition-transform group-hover:translate-y-0.5"
-            />
-          </a>
-        ) : (
-          <button
-            type="button"
-            onClick={openGate}
-            className="flex w-full items-center gap-4 rounded-sm border border-border bg-white/40 p-5 text-left shadow-sm transition-colors hover:border-charcoal"
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ivory-dim text-charcoal-soft">
-              <Lock size={18} strokeWidth={1.5} />
-            </span>
-            <span>
-              <span className="block text-sm font-medium text-charcoal">Brochure du projet</span>
-              <span className="block text-xs text-charcoal-soft">
-                Indiquez vos coordonnées pour la télécharger
-              </span>
-            </span>
-          </button>
-        ))}
+      {brochureUrl && (
+        <div>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
+            Brochure
+          </h3>
+          <div className="mt-2">
+            {unlocked ? (
+              <DocumentRow label="Brochure du projet" url={brochureUrl} filename="brochure.pdf" />
+            ) : (
+              <button
+                type="button"
+                onClick={openGate}
+                className="flex w-full items-center gap-4 rounded-sm border border-border bg-white/40 p-5 text-left shadow-sm transition-colors hover:border-charcoal"
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ivory-dim text-charcoal-soft">
+                  <Lock size={18} strokeWidth={1.5} />
+                </span>
+                <span>
+                  <span className="block text-sm font-medium text-charcoal">Brochure du projet</span>
+                  <span className="block text-xs text-charcoal-soft">
+                    Indiquez vos coordonnées pour la télécharger
+                  </span>
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {units.length > 0 && (
         <div>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils, BadgeCheck, FileText } from "lucide-react";
+import { BedDouble, Bath, Ruler, Trees, Car, Calendar, MapPin, Phone, School, Utensils, BadgeCheck } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/social-icons";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/cn";
@@ -25,6 +25,7 @@ import { SlotPicker } from "@/components/property/slot-picker";
 import { SchedulingEmbed } from "@/components/property/scheduling-embed";
 import { MobileContactBar } from "@/components/property/mobile-contact-bar";
 import { NewDevelopmentGate } from "@/components/property/new-development-gate";
+import { DocumentRow } from "@/components/property/document-row";
 import { ShareButton } from "@/components/property/share-button";
 import { NeighborhoodMap } from "@/components/property/neighborhood-map";
 import { Breadcrumbs, breadcrumbJsonLd } from "@/components/ui/breadcrumbs";
@@ -266,18 +267,14 @@ export default async function PropertyDetailPage({
                     <h3 className="text-xs font-medium uppercase tracking-wide text-charcoal-soft">
                       Plans par étage
                     </h3>
-                    <div className="mt-2 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    <div className="mt-2 space-y-2">
                       {property.floorPlans.map((plan) => (
-                        <a
+                        <DocumentRow
                           key={plan.id}
-                          href={plan.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-2.5 rounded-sm border border-border bg-white/40 px-3.5 py-3 text-sm text-charcoal transition-colors hover:border-charcoal"
-                        >
-                          <FileText size={16} strokeWidth={1.5} className="shrink-0 text-olive" />
-                          <span className="truncate">{plan.label}</span>
-                        </a>
+                          label={plan.label}
+                          url={plan.url}
+                          filename={`${plan.label}.pdf`}
+                        />
                       ))}
                     </div>
                   </div>
