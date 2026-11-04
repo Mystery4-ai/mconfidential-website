@@ -28,6 +28,7 @@ export function BrochureManager({
       const blob = await upload(file.name, file, {
         access: "public",
         handleUploadUrl: "/api/blob-upload",
+        multipart: true,
       });
       await saveBrochureUrl(propertyId, blob.url);
       setStatus("success");

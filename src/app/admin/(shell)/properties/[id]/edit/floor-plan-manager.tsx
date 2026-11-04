@@ -43,6 +43,7 @@ export function FloorPlanManager({
         const blob = await upload(file.name, file, {
           access: "public",
           handleUploadUrl: "/api/blob-upload",
+          multipart: true,
         });
         const label = file.name.replace(/\.pdf$/i, "").trim() || "Plan";
         await addFloorPlan(propertyId, blob.url, label);
