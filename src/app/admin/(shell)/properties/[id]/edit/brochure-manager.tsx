@@ -24,11 +24,13 @@ export function BrochureManager({
     if (!file) return;
     setStatus("uploading");
     setError(null);
+    const abortController = new AbortController();
+    const timeout = setTimeout(() => abortController.abort(), 60_000);
     try {
       const blob = await upload(file.name, file, {
         access: "public",
         handleUploadUrl: "/api/blob-upload",
-        multipart: true,
+        abortSignal: abortController.signal,
       });
       await saveBrochureUrl(propertyId, blob.url);
       setStatus("success");
@@ -37,7 +39,13 @@ export function BrochureManager({
       router.refresh();
     } catch (err) {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
+      if (err instanceof Error && err.name === "AbortError") {
+        setError("L’envoi a dépassé 60 secondes sans réponse — réessayez, ou vérifiez votre connexion.");
+      } else {
+        setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
+      }
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

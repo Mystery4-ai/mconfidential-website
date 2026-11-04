@@ -40,14 +40,20 @@ export function FloorPlanManager({
     setDoneCount(0);
     try {
       for (const file of files) {
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/blob-upload",
-          multipart: true,
-        });
-        const label = file.name.replace(/\.pdf$/i, "").trim() || "Plan";
-        await addFloorPlan(propertyId, blob.url, label);
-        setDoneCount((n) => n + 1);
+        const abortController = new AbortController();
+        const timeout = setTimeout(() => abortController.abort(), 60_000);
+        try {
+          const blob = await upload(file.name, file, {
+            access: "public",
+            handleUploadUrl: "/api/blob-upload",
+            abortSignal: abortController.signal,
+          });
+          const label = file.name.replace(/\.pdf$/i, "").trim() || "Plan";
+          await addFloorPlan(propertyId, blob.url, label);
+          setDoneCount((n) => n + 1);
+        } finally {
+          clearTimeout(timeout);
+        }
       }
       setStatus("success");
       setFiles([]);
@@ -55,7 +61,11 @@ export function FloorPlanManager({
       router.refresh();
     } catch (err) {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
+      if (err instanceof Error && err.name === "AbortError") {
+        setError("L’envoi a dépassé 60 secondes sans réponse — réessayez, ou vérifiez votre connexion.");
+      } else {
+        setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
+      }
     }
   }
 
