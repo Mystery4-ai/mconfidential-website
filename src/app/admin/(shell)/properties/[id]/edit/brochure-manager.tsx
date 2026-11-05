@@ -2,10 +2,9 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
 import { CheckCircle2, FileText, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { deleteBrochure, saveBrochureUrl } from "../../actions";
+import { deleteBrochure, uploadBrochureFile } from "../../actions";
 
 export function BrochureManager({
   propertyId,
@@ -24,28 +23,17 @@ export function BrochureManager({
     if (!file) return;
     setStatus("uploading");
     setError(null);
-    const abortController = new AbortController();
-    const timeout = setTimeout(() => abortController.abort(), 60_000);
     try {
-      const blob = await upload(file.name, file, {
-        access: "public",
-        handleUploadUrl: "/api/blob-upload",
-        abortSignal: abortController.signal,
-      });
-      await saveBrochureUrl(propertyId, blob.url);
+      const formData = new FormData();
+      formData.set("brochure", file);
+      await uploadBrochureFile(propertyId, formData);
       setStatus("success");
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();
     } catch (err) {
       setStatus("error");
-      if (err instanceof Error && err.name === "AbortError") {
-        setError("L’envoi a dépassé 60 secondes sans réponse — réessayez, ou vérifiez votre connexion.");
-      } else {
-        setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
-      }
-    } finally {
-      clearTimeout(timeout);
+      setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
     }
   }
 

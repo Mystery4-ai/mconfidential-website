@@ -2,10 +2,9 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
 import { CheckCircle2, FileText, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { addFloorPlan, deleteFloorPlan } from "../../actions";
+import { deleteFloorPlan, uploadFloorPlanFiles } from "../../actions";
 
 type FloorPlanItem = { id: string; label: string; url: string };
 
@@ -20,7 +19,6 @@ export function FloorPlanManager({
   const [, startTransition] = useTransition();
   const [files, setFiles] = useState<File[]>([]);
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
-  const [doneCount, setDoneCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -37,35 +35,17 @@ export function FloorPlanManager({
     if (files.length === 0) return;
     setStatus("uploading");
     setError(null);
-    setDoneCount(0);
     try {
-      for (const file of files) {
-        const abortController = new AbortController();
-        const timeout = setTimeout(() => abortController.abort(), 60_000);
-        try {
-          const blob = await upload(file.name, file, {
-            access: "public",
-            handleUploadUrl: "/api/blob-upload",
-            abortSignal: abortController.signal,
-          });
-          const label = file.name.replace(/\.pdf$/i, "").trim() || "Plan";
-          await addFloorPlan(propertyId, blob.url, label);
-          setDoneCount((n) => n + 1);
-        } finally {
-          clearTimeout(timeout);
-        }
-      }
+      const formData = new FormData();
+      for (const file of files) formData.append("floorPlans", file);
+      await uploadFloorPlanFiles(propertyId, formData);
       setStatus("success");
       setFiles([]);
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();
     } catch (err) {
       setStatus("error");
-      if (err instanceof Error && err.name === "AbortError") {
-        setError("L’envoi a dépassé 60 secondes sans réponse — réessayez, ou vérifiez votre connexion.");
-      } else {
-        setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
-      }
+      setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
     }
   }
 
@@ -125,7 +105,7 @@ export function FloorPlanManager({
           <Button type="button" size="sm" onClick={confirmUpload} disabled={status === "uploading"}>
             {status === "uploading" ? (
               <>
-                <Loader2 size={14} className="animate-spin" /> Envoi {doneCount}/{files.length}…
+                <Loader2 size={14} className="animate-spin" /> Envoi en cours…
               </>
             ) : (
               <>
@@ -137,7 +117,7 @@ export function FloorPlanManager({
 
         {status === "success" && (
           <p className="flex items-center gap-1.5 text-xs text-status-published">
-            <CheckCircle2 size={14} /> {doneCount} plan(s) envoyé(s) et confirmé(s).
+            <CheckCircle2 size={14} /> Plans envoyés et confirmés.
           </p>
         )}
         {status === "error" && <p className="text-xs text-status-sold">{error}</p>}

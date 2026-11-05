@@ -233,12 +233,18 @@ export async function reorderImages(propertyId: string, orderedIds: string[]) {
 }
 
 /**
- * Persists a brochure URL already uploaded directly to Blob storage from the
- * browser (see /api/blob-upload) — the file itself never passes through
- * this server, only its resulting URL.
+ * The file goes browser → this server → Blob storage: a same-origin
+ * request from the browser's point of view, so categorically immune to the
+ * cross-origin CORS issues a direct-to-Blob client upload ran into on one
+ * environment. Bounded by the route's maxDuration (60s), well within
+ * budget for these file sizes.
  */
-export async function saveBrochureUrl(propertyId: string, url: string) {
+export async function uploadBrochureFile(propertyId: string, formData: FormData) {
   const { property } = await assertOwnedOrAdmin(propertyId);
+  const file = formData.get("brochure");
+  if (!(file instanceof File) || file.size === 0) return;
+
+  const url = await saveUploadedImage(file, "documents");
   if (property.brochureUrl) await deleteUploadedImage(property.brochureUrl);
   await db.property.update({ where: { id: propertyId }, data: { brochureUrl: url } });
 
@@ -257,16 +263,21 @@ export async function deleteBrochure(propertyId: string) {
   revalidatePath(`/biens/${property.slug}`);
 }
 
-/**
- * Persists one floor plan already uploaded directly to Blob storage from
- * the browser (see /api/blob-upload) — same reasoning as saveBrochureUrl.
- */
-export async function addFloorPlan(propertyId: string, url: string, label: string) {
+/** Same-origin server-proxied upload — see uploadBrochureFile for why. */
+export async function uploadFloorPlanFiles(propertyId: string, formData: FormData) {
   const { property } = await assertOwnedOrAdmin(propertyId);
+  const files = formData.getAll("floorPlans").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) return;
+
   const existingCount = await db.floorPlan.count({ where: { propertyId } });
-  await db.floorPlan.create({
-    data: { propertyId, url, label: label || "Plan", position: existingCount },
-  });
+  let position = existingCount;
+  for (const file of files) {
+    const url = await saveUploadedImage(file, "floor-plans");
+    const label = file.name.replace(/\.pdf$/i, "").trim() || "Plan";
+    await db.floorPlan.create({
+      data: { propertyId, url, label, position: position++ },
+    });
+  }
 
   revalidatePath(`/admin/properties/${propertyId}/edit`);
   revalidatePath(`/biens/${property.slug}`);
