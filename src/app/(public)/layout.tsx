@@ -49,10 +49,15 @@ export default async function PublicLayout({ children }: { children: React.React
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
-      <SiteHeader phone={settings.phone} logoUrl={settings.logoUrl} agencyName={settings.agencyName} />
+      <SiteHeader logoUrl={settings.logoUrl} agencyName={settings.agencyName} />
       <main className="flex-1">{children}</main>
       <SiteFooter settings={settings} cities={cities} />
-      <StickyContactCta phone={settings.phone} whatsapp={settings.whatsapp} />
+      <StickyContactCta
+        phone={settings.phone}
+        whatsapp={settings.whatsapp}
+        instagramUrl={settings.instagramUrl}
+        facebookUrl={settings.facebookUrl}
+      />
     </>
   );
 }
