@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, FileText, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MAX_UPLOAD_BYTES, tooHeavyMessage } from "@/lib/upload-limits";
 import { deleteFloorPlan, uploadFloorPlanFiles } from "../../actions";
 
 type FloorPlanItem = { id: string; label: string; url: string };
@@ -33,19 +34,28 @@ export function FloorPlanManager({
 
   async function confirmUpload() {
     if (files.length === 0) return;
+    const tooHeavy = files.find((file) => file.size > MAX_UPLOAD_BYTES);
+    if (tooHeavy) {
+      setStatus("error");
+      setError(tooHeavyMessage(tooHeavy));
+      return;
+    }
     setStatus("uploading");
     setError(null);
     try {
-      const formData = new FormData();
-      for (const file of files) formData.append("floorPlans", file);
-      await uploadFloorPlanFiles(propertyId, formData);
+      // One request per file: together they could exceed the upload limit.
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("floorPlans", file);
+        await uploadFloorPlanFiles(propertyId, formData);
+      }
       setStatus("success");
       setFiles([]);
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();
-    } catch (err) {
+    } catch {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
+      setError("Échec de l’envoi du fichier. Réessayez.");
     }
   }
 

@@ -191,23 +191,38 @@ export async function setAvailability(propertyId: string, availability: string) 
   revalidatePath(`/biens/${property.slug}`);
 }
 
-export async function uploadImages(propertyId: string, formData: FormData) {
+export async function uploadImages(
+  propertyId: string,
+  formData: FormData
+): Promise<{ error?: string }> {
   const { property } = await assertOwnedOrAdmin(propertyId);
   const files = formData.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);
-  if (files.length === 0) return;
+  if (files.length === 0) return {};
+
+  // Vercel's disk is read-only: without the token, saveUploadedImage can only fail.
+  if (process.env.VERCEL && !process.env.BLOB_READ_WRITE_TOKEN) {
+    console.error("uploadImages: BLOB_READ_WRITE_TOKEN is not set");
+    return { error: "le stockage des photos n’est pas branché sur le site" };
+  }
 
   const existingCount = await db.image.count({ where: { propertyId } });
 
   let position = existingCount;
-  for (const file of files) {
-    const url = await saveUploadedImage(file);
-    await db.image.create({
-      data: { propertyId, url, altText: property.title, position: position++ },
-    });
+  try {
+    for (const file of files) {
+      const url = await saveUploadedImage(file);
+      await db.image.create({
+        data: { propertyId, url, altText: property.title, position: position++ },
+      });
+    }
+  } catch (err) {
+    console.error("uploadImages failed", err);
+    return { error: "le stockage des photos a refusé l’envoi" };
   }
 
   revalidatePath(`/admin/properties/${propertyId}/edit`);
   revalidatePath(`/biens/${property.slug}`);
+  return {};
 }
 
 export async function deleteImage(propertyId: string, imageId: string) {
