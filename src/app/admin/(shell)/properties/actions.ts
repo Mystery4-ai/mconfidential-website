@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { requireUserAction, requireAdminAction } from "@/lib/auth-helpers";
 import { generateReference, generateUniqueSlug, propertyOwnerWhere } from "@/lib/property-admin";
-import { saveUploadedImage, deleteUploadedImage } from "@/lib/storage";
+import { saveUploadedImage, deleteUploadedImage, storageFailureReason } from "@/lib/storage";
 import { propertyFormSchema, numOrUndefined } from "./schema";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -217,7 +217,7 @@ export async function uploadImages(
     }
   } catch (err) {
     console.error("uploadImages failed", err);
-    return { error: "le stockage des photos a refusé l’envoi" };
+    return { error: `le stockage des photos a refusé l’envoi — ${storageFailureReason(err)}` };
   }
 
   revalidatePath(`/admin/properties/${propertyId}/edit`);
@@ -254,17 +254,27 @@ export async function reorderImages(propertyId: string, orderedIds: string[]) {
  * environment. Bounded by the route's maxDuration (60s), well within
  * budget for these file sizes.
  */
-export async function uploadBrochureFile(propertyId: string, formData: FormData) {
+export async function uploadBrochureFile(
+  propertyId: string,
+  formData: FormData
+): Promise<{ error?: string }> {
   const { property } = await assertOwnedOrAdmin(propertyId);
   const file = formData.get("brochure");
-  if (!(file instanceof File) || file.size === 0) return;
+  if (!(file instanceof File) || file.size === 0) return {};
 
-  const url = await saveUploadedImage(file, "documents");
+  let url: string;
+  try {
+    url = await saveUploadedImage(file, "documents");
+  } catch (err) {
+    console.error("uploadBrochureFile failed", err);
+    return { error: `le stockage a refusé le fichier — ${storageFailureReason(err)}` };
+  }
   if (property.brochureUrl) await deleteUploadedImage(property.brochureUrl);
   await db.property.update({ where: { id: propertyId }, data: { brochureUrl: url } });
 
   revalidatePath(`/admin/properties/${propertyId}/edit`);
   revalidatePath(`/biens/${property.slug}`);
+  return {};
 }
 
 export async function deleteBrochure(propertyId: string) {
@@ -279,23 +289,32 @@ export async function deleteBrochure(propertyId: string) {
 }
 
 /** Same-origin server-proxied upload — see uploadBrochureFile for why. */
-export async function uploadFloorPlanFiles(propertyId: string, formData: FormData) {
+export async function uploadFloorPlanFiles(
+  propertyId: string,
+  formData: FormData
+): Promise<{ error?: string }> {
   const { property } = await assertOwnedOrAdmin(propertyId);
   const files = formData.getAll("floorPlans").filter((f): f is File => f instanceof File && f.size > 0);
-  if (files.length === 0) return;
+  if (files.length === 0) return {};
 
   const existingCount = await db.floorPlan.count({ where: { propertyId } });
   let position = existingCount;
-  for (const file of files) {
-    const url = await saveUploadedImage(file, "floor-plans");
-    const label = file.name.replace(/\.pdf$/i, "").trim() || "Plan";
-    await db.floorPlan.create({
-      data: { propertyId, url, label, position: position++ },
-    });
+  try {
+    for (const file of files) {
+      const url = await saveUploadedImage(file, "floor-plans");
+      const label = file.name.replace(/\.pdf$/i, "").trim() || "Plan";
+      await db.floorPlan.create({
+        data: { propertyId, url, label, position: position++ },
+      });
+    }
+  } catch (err) {
+    console.error("uploadFloorPlanFiles failed", err);
+    return { error: `le stockage a refusé le fichier — ${storageFailureReason(err)}` };
   }
 
   revalidatePath(`/admin/properties/${propertyId}/edit`);
   revalidatePath(`/biens/${property.slug}`);
+  return {};
 }
 
 export async function deleteFloorPlan(propertyId: string, floorPlanId: string) {

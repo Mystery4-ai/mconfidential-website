@@ -32,7 +32,12 @@ export function BrochureManager({
     try {
       const formData = new FormData();
       formData.set("brochure", file);
-      await uploadBrochureFile(propertyId, formData);
+      const result = await uploadBrochureFile(propertyId, formData);
+      if (result.error) {
+        setStatus("error");
+        setError(`Échec de l’envoi : ${result.error}.`);
+        return;
+      }
       setStatus("success");
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";

@@ -47,7 +47,12 @@ export function FloorPlanManager({
       for (const file of files) {
         const formData = new FormData();
         formData.append("floorPlans", file);
-        await uploadFloorPlanFiles(propertyId, formData);
+        const result = await uploadFloorPlanFiles(propertyId, formData);
+        if (result.error) {
+          setStatus("error");
+          setError(`Échec de l’envoi : ${result.error}.`);
+          return;
+        }
       }
       setStatus("success");
       setFiles([]);
