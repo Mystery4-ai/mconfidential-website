@@ -30,6 +30,7 @@ import { ShareButton } from "@/components/property/share-button";
 import { NeighborhoodMap } from "@/components/property/neighborhood-map";
 import { Breadcrumbs, breadcrumbJsonLd } from "@/components/ui/breadcrumbs";
 import { AvailabilityBadge, PropertyStatusBadge } from "@/components/ui/status-badge";
+import { jsonLdScript } from "@/lib/json-ld";
 import { auth } from "@/auth";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
@@ -176,11 +177,11 @@ export default async function PropertyDetailPage({
       )}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(breadcrumbItems, SITE_URL)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd(breadcrumbItems, SITE_URL)) }}
       />
 
       <Container className="pt-6">

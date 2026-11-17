@@ -31,6 +31,24 @@ function parseParams(raw: RawParams): PropertySearchParams {
   };
 }
 
+// Shared by the canonical tag and pagination links so a filtered view (e.g.
+// ?city=Casablanca) always declares itself, rather than silently collapsing
+// into a canonical for plain /biens — which told Google every filtered page
+// was a duplicate of the unfiltered one, and it stopped indexing them.
+function buildBiensQueryString(params: PropertySearchParams): string {
+  const qs = new URLSearchParams();
+  if (params.transaction) qs.set("transaction", params.transaction);
+  if (params.type) qs.set("type", params.type);
+  if (params.city) qs.set("city", params.city);
+  if (params.neighborhood) qs.set("neighborhood", params.neighborhood);
+  if (params.minPrice) qs.set("minPrice", String(params.minPrice));
+  if (params.maxPrice) qs.set("maxPrice", String(params.maxPrice));
+  if (params.bedrooms) qs.set("bedrooms", String(params.bedrooms));
+  if (params.page && params.page > 1) qs.set("page", String(params.page));
+  const s = qs.toString();
+  return s ? `?${s}` : "";
+}
+
 export async function generateMetadata({
   searchParams,
 }: {
@@ -47,7 +65,7 @@ export async function generateMetadata({
     description:
       "Parcourez les biens immobiliers disponibles à la vente et à la location avec M. Confidential, agence premium à Casablanca et Dar Bouazza.",
     alternates: {
-      canonical: `/biens${params.page && params.page > 1 ? `?page=${params.page}` : ""}`,
+      canonical: `/biens${buildBiensQueryString(params)}`,
     },
   };
 }
@@ -64,19 +82,7 @@ export default async function PropertiesPage({
     getDistinctCities(),
   ]);
 
-  const buildHref = (p: number) => {
-    const qs = new URLSearchParams();
-    if (params.transaction) qs.set("transaction", params.transaction);
-    if (params.type) qs.set("type", params.type);
-    if (params.city) qs.set("city", params.city);
-    if (params.neighborhood) qs.set("neighborhood", params.neighborhood);
-    if (params.minPrice) qs.set("minPrice", String(params.minPrice));
-    if (params.maxPrice) qs.set("maxPrice", String(params.maxPrice));
-    if (params.bedrooms) qs.set("bedrooms", String(params.bedrooms));
-    if (p > 1) qs.set("page", String(p));
-    const s = qs.toString();
-    return s ? `/biens?${s}` : "/biens";
-  };
+  const buildHref = (p: number) => `/biens${buildBiensQueryString({ ...params, page: p })}`;
 
   return (
     <Container className="py-12">

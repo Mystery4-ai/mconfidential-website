@@ -149,9 +149,11 @@ export async function importFromMubawab(
     try {
       const imgRes = await fetch(imageUrl);
       if (!imgRes.ok) continue;
+      const contentType = imgRes.headers.get("content-type")?.split(";")[0].trim();
+      if (!contentType) continue; // don't guess the type of what came back
       const blob = await imgRes.blob();
       const ext = imageUrl.split(".").pop()?.split(/[?#]/)[0] || "jpg";
-      const file = new File([blob], `photo-${position}.${ext}`, { type: blob.type || "image/jpeg" });
+      const file = new File([blob], `photo-${position}.${ext}`, { type: contentType });
       const storedUrl = await saveUploadedImage(file);
       await db.image.create({
         data: { propertyId: property.id, url: storedUrl, altText: listing.title, position: position++ },
@@ -353,7 +355,7 @@ export async function uploadBrochureFile(
 
   let url: string;
   try {
-    url = await saveUploadedImage(file, "documents");
+    url = await saveUploadedImage(file, "documents", "document");
   } catch (err) {
     console.error("uploadBrochureFile failed", err);
     return { error: `le stockage a refusé le fichier — ${storageFailureReason(err)}` };
@@ -390,7 +392,7 @@ export async function uploadFloorPlanFiles(
   let position = existingCount;
   try {
     for (const file of files) {
-      const url = await saveUploadedImage(file, "floor-plans");
+      const url = await saveUploadedImage(file, "floor-plans", "document");
       const label = file.name.replace(/\.pdf$/i, "").trim() || "Plan";
       await db.floorPlan.create({
         data: { propertyId, url, label, position: position++ },

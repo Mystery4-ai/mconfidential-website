@@ -22,7 +22,29 @@ export function storageFailureReason(err: unknown): string {
 const useBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
 const UPLOAD_ROOT = path.join(process.cwd(), "public", "uploads");
 
-export async function saveUploadedImage(file: File, folder: string = "properties"): Promise<string> {
+// Browsers execute script embedded in a directly-opened SVG, and the Blob
+// store is public — accepting whatever content-type the client claims would
+// let any logged-in user host a disguised HTML/SVG payload on our own
+// storage domain. Allowlisting here is the one place every upload funnels
+// through, so a future call site can't skip it by accident.
+const ALLOWED_TYPES: Record<"image" | "document", Set<string>> = {
+  image: new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]),
+  document: new Set(["application/pdf"]),
+};
+
+export async function saveUploadedImage(
+  file: File,
+  folder: string = "properties",
+  kind: "image" | "document" = "image"
+): Promise<string> {
+  if (!ALLOWED_TYPES[kind].has(file.type)) {
+    throw new Error(
+      kind === "document"
+        ? "seuls les fichiers PDF sont acceptés"
+        : "format d’image non pris en charge (jpeg, png, webp ou gif uniquement)"
+    );
+  }
+
   const ext = (file.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
   const filename = `${randomUUID()}.${ext}`;
 

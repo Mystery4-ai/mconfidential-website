@@ -54,7 +54,11 @@ export async function createConsultant(
   const photo = formData.get("photo");
   let photoUrl: string | undefined;
   if (photo instanceof File && photo.size > 0) {
-    photoUrl = await saveUploadedImage(photo);
+    try {
+      photoUrl = await saveUploadedImage(photo);
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : "Échec de l’envoi de la photo." };
+    }
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -107,7 +111,11 @@ export async function updateConsultant(
   const photo = formData.get("photo");
   let photoUrl: string | undefined;
   if (photo instanceof File && photo.size > 0) {
-    photoUrl = await saveUploadedImage(photo);
+    try {
+      photoUrl = await saveUploadedImage(photo);
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : "Échec de l’envoi de la photo." };
+    }
   }
 
   const newPassword = String(formData.get("password") || "");

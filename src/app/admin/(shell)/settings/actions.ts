@@ -41,14 +41,18 @@ export async function updateSettings(
     Object.entries(parsed.data).map(([k, v]) => [k, v || null])
   );
 
-  const logo = formData.get("logo");
-  if (logo instanceof File && logo.size > 0) {
-    data.logoUrl = await saveUploadedImage(logo, "branding");
-  }
+  try {
+    const logo = formData.get("logo");
+    if (logo instanceof File && logo.size > 0) {
+      data.logoUrl = await saveUploadedImage(logo, "branding");
+    }
 
-  const heroImage = formData.get("heroImage");
-  if (heroImage instanceof File && heroImage.size > 0) {
-    data.heroImageUrl = await saveUploadedImage(heroImage, "branding");
+    const heroImage = formData.get("heroImage");
+    if (heroImage instanceof File && heroImage.size > 0) {
+      data.heroImageUrl = await saveUploadedImage(heroImage, "branding");
+    }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Échec de l’envoi de l’image." };
   }
 
   await db.agencySettings.upsert({

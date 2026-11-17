@@ -51,7 +51,11 @@ export async function updateOwnProfile(
   const photo = formData.get("photo");
   let photoUrl: string | undefined;
   if (photo instanceof File && photo.size > 0) {
-    photoUrl = await saveUploadedImage(photo);
+    try {
+      photoUrl = await saveUploadedImage(photo);
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : "Échec de l’envoi de la photo." };
+    }
   }
 
   const newPassword = String(formData.get("password") || "");

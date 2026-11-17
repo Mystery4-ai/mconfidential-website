@@ -8,6 +8,7 @@ import { Breadcrumbs, breadcrumbJsonLd } from "@/components/ui/breadcrumbs";
 import { searchProperties } from "@/lib/properties";
 import { neighborhoodDirectory } from "@/lib/neighborhoods";
 import { neighborhoodDescriptions } from "@/lib/neighborhood-content";
+import { jsonLdScript } from "@/lib/json-ld";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
 
@@ -71,7 +72,7 @@ export default async function NeighborhoodPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(breadcrumbItems, SITE_URL)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd(breadcrumbItems, SITE_URL)) }}
       />
 
       <Container className="py-16">

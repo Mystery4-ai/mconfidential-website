@@ -18,6 +18,7 @@ import { PropertyCard } from "@/components/property/property-card";
 import { Container } from "@/components/layout/container";
 import { LinkButton } from "@/components/ui/button";
 import { HomeSearchForm } from "@/components/property/home-search-form";
+import { jsonLdScript } from "@/lib/json-ld";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getAgencySettings();
@@ -100,7 +101,7 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd) }}
       />
 
       <section className="relative flex h-[92vh] min-h-[620px] items-center overflow-hidden bg-charcoal text-ivory">

@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { StickyContactCta } from "@/components/layout/sticky-contact-cta";
 import { getAgencySettings } from "@/lib/settings";
 import { getDistinctCities } from "@/lib/properties";
+import { jsonLdScript } from "@/lib/json-ld";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
 
@@ -47,7 +48,7 @@ export default async function PublicLayout({ children }: { children: React.React
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd) }}
       />
       <SiteHeader logoUrl={settings.logoUrl} agencyName={settings.agencyName} />
       <main className="flex-1">{children}</main>

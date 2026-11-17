@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   experimental: {
     serverActions: {
       // Property/consultant photo uploads go through Server Actions; the 1MB
@@ -18,6 +19,29 @@ const nextConfig: NextConfig = {
     staleTimes: {
       dynamic: 0,
     },
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // Blocks the admin login page and public forms from being framed
+          // by another site for clickjacking. No legitimate same-origin
+          // iframe usage exists — the site only embeds others (Google Maps,
+          // Cal.com), never the reverse.
+          { key: "X-Frame-Options", value: "DENY" },
+          // Stops older browsers from re-interpreting a response (e.g. an
+          // uploaded file served with an unexpected type) as something more
+          // dangerous than its declared Content-Type.
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Full URLs (which can include the lead-gate unlock cookie's
+          // associated path, or search filters) stay off third-party
+          // referrer logs; same-origin navigation keeps the full path.
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
   },
   async redirects() {
     return [
