@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea, FormError, FormSuccess } from "@/components/ui/field";
 import { Logo } from "@/components/layout/logo";
@@ -18,6 +19,7 @@ type Settings = {
   facebookUrl: string | null;
   instagramUrl: string | null;
   schedulingUrl: string | null;
+  heroImageUrl: string | null;
   heroHeadline: string | null;
   heroSubheadline: string | null;
   aboutText: string | null;
@@ -127,6 +129,25 @@ export function SettingsForm({ settings }: { settings: Settings }) {
       <section>
         <h2 className="font-serif text-lg">Page d’accueil</h2>
         <div className="mt-4 space-y-4">
+          <div>
+            <Label htmlFor="heroImage">Photo d’en-tête (hero)</Label>
+            {settings.heroImageUrl && (
+              <div className="relative mb-3 aspect-[16/7] w-full overflow-hidden border border-border">
+                <Image src={settings.heroImageUrl} alt="" fill className="object-cover" sizes="600px" />
+              </div>
+            )}
+            <input
+              type="file"
+              id="heroImage"
+              name="heroImage"
+              accept="image/*"
+              className="block w-full text-sm text-charcoal-soft file:mr-4 file:border-0 file:bg-charcoal file:px-4 file:py-2 file:text-sm file:font-medium file:text-ivory"
+            />
+            <p className="mt-1.5 text-xs text-charcoal-soft">
+              Photo affichée en grand sur la page d’accueil. Si aucune n’est envoyée, le site
+              utilise la photo du bien le plus récent mis en avant.
+            </p>
+          </div>
           <div>
             <Label htmlFor="heroHeadline">Titre principal (hero)</Label>
             <Input id="heroHeadline" name="heroHeadline" defaultValue={settings.heroHeadline ?? ""} />

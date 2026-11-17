@@ -36,19 +36,22 @@ export function PropertyForm({
   consultants,
   isAdmin,
   submitLabel = "Enregistrer",
+  onCreated,
 }: {
   action: (state: PropertyFormState, formData: FormData) => Promise<PropertyFormState>;
   initialValues?: PropertyInitialValues;
   consultants?: Consultant[];
   isAdmin: boolean;
   submitLabel?: string;
+  onCreated?: (propertyId: string) => void;
 }) {
   const [state, formAction, isPending] = useActionState(action, {});
   const notifySaved = useSaveToast();
   const [prevState, setPrevState] = useState(state);
   if (state !== prevState) {
     setPrevState(state);
-    if (state.success) notifySaved("Modifications enregistrées.");
+    if (state.success && state.propertyId) onCreated?.(state.propertyId);
+    else if (state.success) notifySaved("Modifications enregistrées.");
   }
 
   return (
@@ -208,7 +211,7 @@ export function PropertyForm({
       )}
 
       <FormError>{state.error}</FormError>
-      {state.success && <FormSuccess>Modifications enregistrées.</FormSuccess>}
+      {state.success && !state.propertyId && <FormSuccess>Modifications enregistrées.</FormSuccess>}
 
       <Button type="submit" disabled={isPending}>
         {isPending ? "Enregistrement…" : submitLabel}

@@ -46,6 +46,11 @@ export async function updateSettings(
     data.logoUrl = await saveUploadedImage(logo, "branding");
   }
 
+  const heroImage = formData.get("heroImage");
+  if (heroImage instanceof File && heroImage.size > 0) {
+    data.heroImageUrl = await saveUploadedImage(heroImage, "branding");
+  }
+
   await db.agencySettings.upsert({
     where: { id: 1 },
     create: { id: 1, ...data, agencyName: parsed.data.agencyName },

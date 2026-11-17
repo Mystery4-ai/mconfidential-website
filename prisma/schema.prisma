@@ -273,6 +273,7 @@ model AgencySettings {
   // built-in date/time form.
   schedulingUrl String?
 
+  heroImageUrl    String?
   heroHeadline    String?
   heroSubheadline String?
   aboutText       String?

@@ -81,7 +81,9 @@ export default async function HomePage() {
     getDistinctCities(),
   ]);
 
-  const heroImage = featured[0]?.coverImage;
+  const heroImage = settings.heroImageUrl
+    ? { url: settings.heroImageUrl, altText: settings.agencyName }
+    : featured[0]?.coverImage;
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
@@ -115,10 +117,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-charcoal/70 via-charcoal/25 to-charcoal/70" />
 
         <Container className="relative z-10 flex flex-col items-center px-6 text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-ivory/80">
-            Casablanca &amp; Dar Bouazza
-          </p>
-          <h1 className="mt-4 max-w-3xl font-serif text-4xl leading-tight md:text-6xl">
+          <h1 className="max-w-3xl font-serif text-4xl leading-tight md:text-6xl">
             {settings.heroHeadline || "Biens d’exception"}
           </h1>
           {settings.heroSubheadline && (

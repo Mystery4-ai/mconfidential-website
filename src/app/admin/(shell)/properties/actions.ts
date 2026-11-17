@@ -4,11 +4,12 @@ import { db } from "@/lib/db";
 import { requireUserAction, requireAdminAction } from "@/lib/auth-helpers";
 import { generateReference, generateUniqueSlug, propertyOwnerWhere } from "@/lib/property-admin";
 import { saveUploadedImage, deleteUploadedImage, storageFailureReason } from "@/lib/storage";
+import { parseMubawabListing } from "@/lib/importers/mubawab";
 import { propertyFormSchema, numOrUndefined } from "./schema";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
-export type PropertyFormState = { error?: string; success?: boolean };
+export type PropertyFormState = { error?: string; success?: boolean; propertyId?: string };
+export type ImportFormState = { error?: string; success?: boolean; propertyId?: string; warning?: string };
 
 function parseFeatures(raw: string | undefined): string[] {
   if (!raw) return [];
@@ -81,7 +82,95 @@ export async function createProperty(
   });
 
   revalidatePath("/admin/properties");
-  redirect(`/admin/properties/${property.id}/edit`);
+  return { success: true, propertyId: property.id };
+}
+
+export async function importFromMubawab(
+  _prevState: ImportFormState,
+  formData: FormData
+): Promise<ImportFormState> {
+  const user = await requireUserAction();
+  const rawUrl = String(formData.get("url") || "").trim();
+
+  let target: URL;
+  try {
+    target = new URL(rawUrl);
+  } catch {
+    return { error: "Lien invalide." };
+  }
+  if (!/(^|\.)mubawab\.ma$/i.test(target.hostname)) {
+    return { error: "Seuls les liens mubawab.ma sont pris en charge pour l’instant." };
+  }
+
+  let html: string;
+  try {
+    const res = await fetch(target.toString(), {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; MConfidentialImporter/1.0)" },
+    });
+    if (!res.ok) return { error: `La page Mubawab a répondu avec une erreur (${res.status}).` };
+    html = await res.text();
+  } catch {
+    return { error: "Impossible de récupérer cette page Mubawab." };
+  }
+
+  const listing = parseMubawabListing(html);
+  if (!listing) {
+    return { error: "Informations insuffisantes sur cette page pour créer le bien." };
+  }
+
+  const [reference, slug] = await Promise.all([
+    generateReference(),
+    generateUniqueSlug(listing.title, listing.city),
+  ]);
+
+  const property = await db.property.create({
+    data: {
+      reference,
+      slug,
+      title: listing.title,
+      description: listing.description,
+      transactionType: listing.transactionType,
+      propertyType: listing.propertyType,
+      price: listing.price,
+      city: listing.city,
+      neighborhood: listing.neighborhood,
+      surfaceArea: listing.surfaceArea,
+      bedrooms: listing.bedrooms,
+      bathrooms: listing.bathrooms,
+      consultantId: user.id,
+      status: "DRAFT",
+    },
+  });
+
+  // Best-effort re-hosting: skip any photo that fails rather than aborting
+  // the whole import, since the property itself is already created.
+  let position = 0;
+  for (const imageUrl of listing.images.slice(0, 30)) {
+    try {
+      const imgRes = await fetch(imageUrl);
+      if (!imgRes.ok) continue;
+      const blob = await imgRes.blob();
+      const ext = imageUrl.split(".").pop()?.split(/[?#]/)[0] || "jpg";
+      const file = new File([blob], `photo-${position}.${ext}`, { type: blob.type || "image/jpeg" });
+      const storedUrl = await saveUploadedImage(file);
+      await db.image.create({
+        data: { propertyId: property.id, url: storedUrl, altText: listing.title, position: position++ },
+      });
+    } catch {
+      // Skip this photo, keep going.
+    }
+  }
+
+  revalidatePath("/admin/properties");
+
+  const sellerMatches = listing.sellerName?.toLowerCase().includes("confidential") ?? false;
+  return {
+    success: true,
+    propertyId: property.id,
+    warning: sellerMatches
+      ? undefined
+      : "Cette annonce ne semble pas publiée par M. Confidential — vérifiez les informations avant de publier.",
+  };
 }
 
 export async function updateProperty(
