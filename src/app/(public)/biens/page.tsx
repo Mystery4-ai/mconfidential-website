@@ -61,7 +61,7 @@ export async function generateMetadata({
   ].filter(Boolean);
 
   return {
-    title: `${parts.join(" à ")} | M. Confidential`,
+    title: parts.join(" à "),
     description:
       "Parcourez les biens immobiliers disponibles à la vente et à la location avec M. Confidential, agence premium à Casablanca et Dar Bouazza.",
     alternates: {

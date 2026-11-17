@@ -98,12 +98,47 @@ export const neighborhoodDescriptions: Record<string, NeighborhoodProfile> = {
     parks: "Plages, espaces verts et jardins privés caractérisent les résidences.",
     dining: "Restaurants et beach clubs en bord de littoral.",
   },
-  "Casa Finance City- CFC": {
+  "Casablanca Finance City (CFC)": {
     story:
       "Casa Finance City est le quartier d’affaires de référence de Casablanca, rassemblant sièges d’entreprises, institutions financières et programmes résidentiels haut de gamme.",
     schools: "Proximité des écoles internationales de Bouskoura et Anfa.",
     parks: "Espaces verts aménagés au sein du quartier d’affaires.",
     dining: "Restaurants et cafés tournés vers une clientèle d’affaires.",
+  },
+  "Roches Noires": {
+    story:
+      "Roches Noires est un quartier historique du nord de Casablanca, entre habitat résidentiel ancien et zones d’activité, à proximité du port et du centre-ville.",
+    schools: "Établissements scolaires de quartier à proximité du centre-ville.",
+    parks: "Proximité du littoral nord et du boulevard de la Corniche historique.",
+    dining: "Commerces et restaurants de quartier, à courte distance du centre-ville.",
+  },
+  "Longchamps": {
+    story:
+      "Longchamps (secteur de Hay Al Hanâa) est un quartier résidentiel calme de Casablanca, apprécié pour ses villas et sa proximité avec les grands axes de la ville.",
+    schools: "Écoles de quartier et proximité des établissements de Maarif et Bourgogne.",
+    parks: "Rues résidentielles arborées typiques du secteur.",
+    dining: "Commerces de proximité et restaurants des quartiers voisins.",
+  },
+  "Oasis": {
+    story:
+      "Oasis est un quartier résidentiel établi de Casablanca, au sud du centre-ville, connu pour son habitat pavillonnaire et sa tranquillité.",
+    schools: "Écoles et lycées de quartier bien implantés dans le secteur.",
+    parks: "Avenues résidentielles arborées et espaces verts de quartier.",
+    dining: "Commerces de proximité et restaurants de quartier.",
+  },
+  "Palmier": {
+    story:
+      "Le Palmier est un quartier résidentiel prisé de Casablanca, à mi-chemin entre le centre-ville et la Corniche, apprécié pour son calme et ses immeubles de standing.",
+    schools: "Proximité des établissements scolaires de Gauthier et Racine.",
+    parks: "Rues résidentielles arborées caractéristiques du quartier.",
+    dining: "Restaurants et cafés des quartiers voisins de Gauthier et Racine.",
+  },
+  "Marina Blanca": {
+    story:
+      "Marina Blanca est une résidence balnéaire sécurisée de Dar Bouazza, prisée pour ses villas en bord de mer et son cadre de vie résidentiel haut de gamme.",
+    schools: "Écoles en développement avec la croissance résidentielle du secteur de Dar Bouazza.",
+    parks: "Accès direct à la plage et aux espaces verts de la résidence.",
+    dining: "Restaurants et beach clubs du secteur de Dar Bouazza.",
   },
 
   // Marrakech

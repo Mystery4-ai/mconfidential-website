@@ -18,8 +18,12 @@ function buildWhere(params: PropertySearchParams): Prisma.PropertyWhereInput {
   const where: Prisma.PropertyWhereInput = { status: "PUBLISHED" };
   if (params.transaction) where.transactionType = params.transaction;
   if (params.type) where.propertyType = params.type;
-  if (params.city) where.city = params.city;
-  if (params.neighborhood) where.neighborhood = params.neighborhood;
+  // Case-insensitive: neighborhood/city values are typed by hand or scraped
+  // (the Mubawab importer) and small casing drift (e.g. "ain diab extension"
+  // vs "Ain Diab Extension") used to silently hide a property from its own
+  // neighborhood/city page.
+  if (params.city) where.city = { equals: params.city, mode: "insensitive" };
+  if (params.neighborhood) where.neighborhood = { equals: params.neighborhood, mode: "insensitive" };
   if (params.bedrooms) where.bedrooms = { gte: params.bedrooms };
   if (params.minPrice || params.maxPrice) {
     where.price = {

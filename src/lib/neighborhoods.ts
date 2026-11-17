@@ -25,8 +25,21 @@ export const neighborhoodDirectory: { city: string; neighborhoods: string[] }[] 
       "Sidi Belyout",
       "Bouskoura",
       "Dar Bouazza",
-      "Casa Finance City- CFC",
+      "Casablanca Finance City (CFC)",
+      "Roches Noires",
+      "Longchamps",
+      "Oasis",
+      "Palmier",
     ],
+  },
+  {
+    // Dar Bouazza is listed on properties both as its own city and as a
+    // Casablanca-area neighborhood (real-world ambiguity: it's sometimes
+    // treated as a southwestern Casablanca suburb, sometimes its own town) —
+    // this group covers the former so those listings get a neighborhood
+    // page too, not just the generic /villes/Dar Bouazza page.
+    city: "Dar Bouazza",
+    neighborhoods: ["Dar Bouazza", "Marina Blanca"],
   },
   {
     city: "Marrakech",
