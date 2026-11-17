@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Select, Label } from "@/components/ui/field";
 import { availabilityLabels } from "@/lib/labels";
+import { useSaveToast } from "@/components/ui/save-toast";
 import { Availability, PropertyStatus } from "@prisma/client";
 import {
   submitForApproval,
@@ -28,10 +29,12 @@ export function StatusActions({
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const notifySaved = useSaveToast();
 
-  function run(action: () => Promise<void>) {
+  function run(action: () => Promise<void>, message: string) {
     startTransition(async () => {
       await action();
+      notifySaved(message);
       router.refresh();
     });
   }
@@ -45,7 +48,7 @@ export function StatusActions({
             variant="secondary"
             size="sm"
             disabled={isPending}
-            onClick={() => run(() => submitForApproval(propertyId))}
+            onClick={() => run(() => submitForApproval(propertyId), "Annonce soumise pour approbation.")}
           >
             Soumettre pour approbation
           </Button>
@@ -56,7 +59,7 @@ export function StatusActions({
             type="button"
             size="sm"
             disabled={isPending}
-            onClick={() => run(() => publishProperty(propertyId))}
+            onClick={() => run(() => publishProperty(propertyId), "Annonce publiée.")}
           >
             Publier
           </Button>
@@ -68,7 +71,7 @@ export function StatusActions({
             variant="secondary"
             size="sm"
             disabled={isPending}
-            onClick={() => run(() => rejectProperty(propertyId))}
+            onClick={() => run(() => rejectProperty(propertyId), "Annonce renvoyée en brouillon.")}
           >
             Rejeter (renvoyer en brouillon)
           </Button>
@@ -80,7 +83,7 @@ export function StatusActions({
             variant="secondary"
             size="sm"
             disabled={isPending}
-            onClick={() => run(() => unpublishProperty(propertyId))}
+            onClick={() => run(() => unpublishProperty(propertyId), "Annonce dépubliée.")}
           >
             Dépublier
           </Button>
@@ -92,7 +95,7 @@ export function StatusActions({
             variant="ghost"
             size="sm"
             disabled={isPending}
-            onClick={() => run(() => archiveProperty(propertyId))}
+            onClick={() => run(() => archiveProperty(propertyId), "Annonce archivée.")}
           >
             Archiver
           </Button>
@@ -104,7 +107,7 @@ export function StatusActions({
             variant="secondary"
             size="sm"
             disabled={isPending}
-            onClick={() => run(() => rejectProperty(propertyId))}
+            onClick={() => run(() => rejectProperty(propertyId), "Annonce restaurée en brouillon.")}
           >
             Restaurer en brouillon
           </Button>
@@ -117,7 +120,7 @@ export function StatusActions({
           id="availability"
           defaultValue={availability}
           disabled={isPending}
-          onChange={(e) => run(() => setAvailability(propertyId, e.target.value))}
+          onChange={(e) => run(() => setAvailability(propertyId, e.target.value), "Disponibilité mise à jour.")}
         >
           {Object.entries(availabilityLabels).map(([value, label]) => (
             <option key={value} value={value}>

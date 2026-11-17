@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, FileText, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MAX_UPLOAD_BYTES, tooHeavyMessage } from "@/lib/upload-limits";
+import { useSaveToast } from "@/components/ui/save-toast";
 import { deleteFloorPlan, uploadFloorPlanFiles } from "../../actions";
 
 type FloorPlanItem = { id: string; label: string; url: string };
@@ -23,11 +24,13 @@ export function FloorPlanManager({
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const notifySaved = useSaveToast();
 
   function remove(id: string) {
     setPendingDeletes((prev) => new Set(prev).add(id));
     startTransition(async () => {
       await deleteFloorPlan(propertyId, id);
+      notifySaved("Plan supprimé.");
       router.refresh();
     });
   }
@@ -55,6 +58,7 @@ export function FloorPlanManager({
         }
       }
       setStatus("success");
+      notifySaved(files.length === 1 ? "Plan envoyé et confirmé." : `${files.length} plans envoyés et confirmés.`);
       setFiles([]);
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();

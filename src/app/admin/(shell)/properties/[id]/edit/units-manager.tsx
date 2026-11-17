@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea, FormError, FormSuccess } from "@/components/ui/field";
+import { useSaveToast } from "@/components/ui/save-toast";
 import { saveProjectUnits, UnitsFormState } from "../../actions";
 
 type Unit = {
@@ -16,6 +17,12 @@ type Unit = {
 export function UnitsManager({ propertyId, units }: { propertyId: string; units: Unit[] }) {
   const boundSave = saveProjectUnits.bind(null, propertyId);
   const [state, formAction, isPending] = useActionState<UnitsFormState, FormData>(boundSave, {});
+  const notifySaved = useSaveToast();
+  const [prevState, setPrevState] = useState(state);
+  if (state !== prevState) {
+    setPrevState(state);
+    if (state.success) notifySaved("Grille des lots enregistrée.");
+  }
 
   const initialText = units
     .map((u) => `${u.floorLabel} | ${u.lotNumber} | ${u.surfaceArea} | ${u.terraceArea ?? ""} | ${u.price}`)

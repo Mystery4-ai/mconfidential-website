@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, FileText, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MAX_UPLOAD_BYTES, tooHeavyMessage } from "@/lib/upload-limits";
+import { useSaveToast } from "@/components/ui/save-toast";
 import { deleteBrochure, uploadBrochureFile } from "../../actions";
 
 export function BrochureManager({
@@ -19,6 +20,8 @@ export function BrochureManager({
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const notifySaved = useSaveToast();
+  const [isDeleting, startDelete] = useTransition();
 
   async function confirmUpload() {
     if (!file) return;
@@ -41,11 +44,20 @@ export function BrochureManager({
       setStatus("success");
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";
+      notifySaved("Brochure envoyée et confirmée.");
       router.refresh();
     } catch {
       setStatus("error");
       setError("Échec de l’envoi du fichier. Réessayez.");
     }
+  }
+
+  function remove() {
+    startDelete(async () => {
+      await deleteBrochure(propertyId);
+      notifySaved("Brochure supprimée.");
+      router.refresh();
+    });
   }
 
   return (
@@ -60,15 +72,15 @@ export function BrochureManager({
           >
             <FileText size={16} strokeWidth={1.5} /> Voir la brochure actuelle
           </a>
-          <form action={() => deleteBrochure(propertyId)}>
-            <button
-              type="submit"
-              className="text-charcoal-soft hover:text-status-sold"
-              aria-label="Supprimer la brochure"
-            >
-              <Trash2 size={16} />
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={remove}
+            disabled={isDeleting}
+            className="text-charcoal-soft hover:text-status-sold disabled:opacity-50"
+            aria-label="Supprimer la brochure"
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       ) : (
         <p className="text-sm text-charcoal-soft">Aucune brochure n’a encore été ajoutée.</p>

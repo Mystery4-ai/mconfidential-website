@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Select, Textarea, FormError } from "@/components/ui/field";
+import { Input, Label, Select, Textarea, FormError, FormSuccess } from "@/components/ui/field";
 import { propertyTypeLabels } from "@/lib/labels";
+import { useSaveToast } from "@/components/ui/save-toast";
 import { PropertyFormState } from "./actions";
 
 type Consultant = { id: string; name: string };
@@ -43,6 +44,12 @@ export function PropertyForm({
   submitLabel?: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, {});
+  const notifySaved = useSaveToast();
+  const [prevState, setPrevState] = useState(state);
+  if (state !== prevState) {
+    setPrevState(state);
+    if (state.success) notifySaved("Modifications enregistrées.");
+  }
 
   return (
     <form action={formAction} className="space-y-8">
@@ -201,6 +208,7 @@ export function PropertyForm({
       )}
 
       <FormError>{state.error}</FormError>
+      {state.success && <FormSuccess>Modifications enregistrées.</FormSuccess>}
 
       <Button type="submit" disabled={isPending}>
         {isPending ? "Enregistrement…" : submitLabel}

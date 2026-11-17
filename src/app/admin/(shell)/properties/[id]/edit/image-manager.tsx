@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, CheckCircle2, Trash2 } from "lucide-react";
 import { MAX_UPLOAD_BYTES } from "@/lib/upload-limits";
+import { useSaveToast } from "@/components/ui/save-toast";
 import { uploadImages, deleteImage, reorderImages } from "../../actions";
 
 type ImageItem = { id: string; url: string; altText: string | null };
@@ -64,6 +65,7 @@ export function ImageManager({
   const [success, setSuccess] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const notifySaved = useSaveToast();
   const busy = isPending || progress !== null;
 
   async function upload(files: File[]) {
@@ -100,7 +102,9 @@ export function ImageManager({
       setError(`Pas ajoutées : ${failed.join(" · ")}. Les autres photos sont enregistrées.`);
     }
     if (uploaded > 0) {
-      setSuccess(uploaded === 1 ? "Photo envoyée et ajoutée." : `${uploaded} photos envoyées et ajoutées.`);
+      const msg = uploaded === 1 ? "Photo envoyée et ajoutée." : `${uploaded} photos envoyées et ajoutées.`;
+      setSuccess(msg);
+      notifySaved(msg);
     }
     router.refresh();
   }
@@ -113,6 +117,7 @@ export function ImageManager({
     setItems(next);
     startTransition(() => {
       reorderImages(propertyId, next.map((i) => i.id));
+      notifySaved("Ordre des photos mis à jour.");
     });
   }
 
@@ -120,6 +125,7 @@ export function ImageManager({
     setItems((prev) => prev.filter((i) => i.id !== id));
     startTransition(() => {
       deleteImage(propertyId, id);
+      notifySaved("Photo supprimée.");
     });
   }
 

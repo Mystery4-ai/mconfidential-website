@@ -8,7 +8,7 @@ import { propertyFormSchema, numOrUndefined } from "./schema";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export type PropertyFormState = { error?: string };
+export type PropertyFormState = { error?: string; success?: boolean };
 
 function parseFeatures(raw: string | undefined): string[] {
   if (!raw) return [];
@@ -128,7 +128,7 @@ export async function updateProperty(
   revalidatePath("/admin/properties");
   revalidatePath(`/admin/properties/${propertyId}/edit`);
   revalidatePath(`/biens/${existing.slug}`);
-  return {};
+  return { success: true };
 }
 
 async function assertOwnedOrAdmin(propertyId: string) {

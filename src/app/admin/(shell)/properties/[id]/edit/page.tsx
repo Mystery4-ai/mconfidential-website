@@ -11,6 +11,7 @@ import { BrochureManager } from "./brochure-manager";
 import { FloorPlanManager } from "./floor-plan-manager";
 import { UnitsManager } from "./units-manager";
 import { PropertyStatusBadge } from "@/components/ui/status-badge";
+import { SaveToastProvider } from "@/components/ui/save-toast";
 
 // Photo/brochure/floor-plan uploads on this page go client → server action
 // → Vercel Blob, a double hop that can exceed the platform's default 10s
@@ -49,80 +50,82 @@ export default async function EditPropertyPage({
   const boundUpdate = updateProperty.bind(null, property.id);
 
   return (
-    <div className="p-6 md:p-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="font-serif text-2xl">{property.title.slice(0, 50)}</h1>
-            <PropertyStatusBadge status={property.status} />
+    <SaveToastProvider>
+      <div className="p-6 md:p-10">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="font-serif text-2xl">{property.title.slice(0, 50)}</h1>
+              <PropertyStatusBadge status={property.status} />
+            </div>
+            <p className="mt-1 text-sm text-charcoal-soft">{property.reference}</p>
           </div>
-          <p className="mt-1 text-sm text-charcoal-soft">{property.reference}</p>
+          <Link
+            href={`/biens/${property.slug}${property.status === "PUBLISHED" ? "" : "?preview=1"}`}
+            target="_blank"
+            className="text-sm text-charcoal underline underline-offset-4"
+          >
+            Aperçu public
+          </Link>
         </div>
-        <Link
-          href={`/biens/${property.slug}${property.status === "PUBLISHED" ? "" : "?preview=1"}`}
-          target="_blank"
-          className="text-sm text-charcoal underline underline-offset-4"
-        >
-          Aperçu public
-        </Link>
-      </div>
 
-      <div className="mt-6 border border-border bg-white/40 p-5">
-        <StatusActions
-          propertyId={property.id}
-          status={property.status}
-          availability={property.availability}
-          isAdmin={user.role === "ADMIN"}
-        />
-      </div>
-
-      <div className="mt-10">
-        <h2 className="font-serif text-lg">Photos</h2>
-        <div className="mt-4">
-          <ImageManager propertyId={property.id} images={property.images} />
-        </div>
-      </div>
-
-      <div className="mt-10 max-w-3xl">
-        <h2 className="font-serif text-lg">Modifier les informations</h2>
-        <div className="mt-4">
-          <PropertyForm
-            action={boundUpdate}
+        <div className="mt-6 border border-border bg-white/40 p-5">
+          <StatusActions
+            propertyId={property.id}
+            status={property.status}
+            availability={property.availability}
             isAdmin={user.role === "ADMIN"}
-            consultants={consultants}
-            initialValues={{
-              ...property,
-              features: Array.isArray(property.features) ? (property.features as string[]) : [],
-            }}
-            submitLabel="Enregistrer les modifications"
           />
         </div>
-      </div>
 
-      {property.isNewDevelopment && (
-        <div className="mt-10 max-w-3xl space-y-10">
-          <div>
-            <h2 className="font-serif text-lg">Brochure</h2>
-            <div className="mt-4">
-              <BrochureManager propertyId={property.id} brochureUrl={property.brochureUrl} />
-            </div>
-          </div>
-
-          <div>
-            <h2 className="font-serif text-lg">Plans par étage</h2>
-            <div className="mt-4">
-              <FloorPlanManager propertyId={property.id} floorPlans={property.floorPlans} />
-            </div>
-          </div>
-
-          <div>
-            <h2 className="font-serif text-lg">Grille des lots</h2>
-            <div className="mt-4">
-              <UnitsManager propertyId={property.id} units={property.units} />
-            </div>
+        <div className="mt-10">
+          <h2 className="font-serif text-lg">Photos</h2>
+          <div className="mt-4">
+            <ImageManager propertyId={property.id} images={property.images} />
           </div>
         </div>
-      )}
-    </div>
+
+        <div className="mt-10 max-w-3xl">
+          <h2 className="font-serif text-lg">Modifier les informations</h2>
+          <div className="mt-4">
+            <PropertyForm
+              action={boundUpdate}
+              isAdmin={user.role === "ADMIN"}
+              consultants={consultants}
+              initialValues={{
+                ...property,
+                features: Array.isArray(property.features) ? (property.features as string[]) : [],
+              }}
+              submitLabel="Enregistrer les modifications"
+            />
+          </div>
+        </div>
+
+        {property.isNewDevelopment && (
+          <div className="mt-10 max-w-3xl space-y-10">
+            <div>
+              <h2 className="font-serif text-lg">Brochure</h2>
+              <div className="mt-4">
+                <BrochureManager propertyId={property.id} brochureUrl={property.brochureUrl} />
+              </div>
+            </div>
+
+            <div>
+              <h2 className="font-serif text-lg">Plans par étage</h2>
+              <div className="mt-4">
+                <FloorPlanManager propertyId={property.id} floorPlans={property.floorPlans} />
+              </div>
+            </div>
+
+            <div>
+              <h2 className="font-serif text-lg">Grille des lots</h2>
+              <div className="mt-4">
+                <UnitsManager propertyId={property.id} units={property.units} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </SaveToastProvider>
   );
 }
