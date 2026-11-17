@@ -1,63 +1,30 @@
 import { cn } from "@/lib/cn";
 
 /**
- * Hand-built recreation of the M. Confidential mark (two-peak "M" monogram +
- * serif wordmark + tagline) using currentColor, so it can be dropped on
- * light or dark backgrounds without separate raster assets. If the brand's
- * original vector/logo file becomes available, swap the <path> below.
+ * Original M. Confidential logo (from the former WordPress site), black on
+ * transparent, cropped to the drawing (387 × 61) so its left edge lines up
+ * with the text below it.
  */
-function LogoMark({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 48 40"
-      className={className}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M2 36 L13 4 L24 29 L35 2 L46 36"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="miter"
-        strokeLinecap="square"
-      />
-    </svg>
-  );
-}
+const DEFAULT_LOGO_SRC = "/logo-mconfidential.png";
 
 export function Logo({
   className,
-  tagline = true,
-  markClassName,
   logoUrl,
-  agencyName = "Confidential",
+  agencyName = "M. Confidential",
 }: {
   className?: string;
-  tagline?: boolean;
-  markClassName?: string;
   logoUrl?: string | null;
   agencyName?: string;
 }) {
-  // When a logo image has been uploaded in the backoffice, it replaces the
-  // built-in hand-drawn mark + wordmark entirely.
-  if (logoUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element -- arbitrary external/blob URL, no next/image domain config needed
-      <img src={logoUrl} alt={agencyName} className={cn("h-9 w-auto object-contain", className)} />
-    );
-  }
-
+  // A logo uploaded in the backoffice (Réglages > Logo) takes precedence over
+  // the original brand logo shipped with the site.
   return (
-    <span className={cn("inline-flex items-center gap-3", className)}>
-      <LogoMark className={cn("h-7 w-8 shrink-0", markClassName)} />
-      <span className="flex flex-col leading-none">
-        <span className="font-serif text-xl tracking-tight">{agencyName}</span>
-        {tagline && (
-          <span className="mt-1 text-[0.6rem] font-medium uppercase tracking-[0.2em] opacity-70">
-            Real Estate | Maroc
-          </span>
-        )}
-      </span>
-    </span>
+    // eslint-disable-next-line @next/next/no-img-element -- static brand asset or arbitrary external/blob URL, no next/image domain config needed
+    <img
+      src={logoUrl || DEFAULT_LOGO_SRC}
+      alt={agencyName}
+      // The uploaded file may carry its own margins; the shipped one has none.
+      className={cn(logoUrl ? "h-9" : "h-7", "w-auto object-contain", className)}
+    />
   );
 }

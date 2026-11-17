@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, FileText, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MAX_UPLOAD_BYTES, tooHeavyMessage } from "@/lib/upload-limits";
 import { deleteBrochure, uploadBrochureFile } from "../../actions";
 
 export function BrochureManager({
@@ -21,19 +22,29 @@ export function BrochureManager({
 
   async function confirmUpload() {
     if (!file) return;
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setStatus("error");
+      setError(tooHeavyMessage(file));
+      return;
+    }
     setStatus("uploading");
     setError(null);
     try {
       const formData = new FormData();
       formData.set("brochure", file);
-      await uploadBrochureFile(propertyId, formData);
+      const result = await uploadBrochureFile(propertyId, formData);
+      if (result.error) {
+        setStatus("error");
+        setError(`Échec de l’envoi : ${result.error}.`);
+        return;
+      }
       setStatus("success");
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();
-    } catch (err) {
+    } catch {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Échec de l’envoi du fichier.");
+      setError("Échec de l’envoi du fichier. Réessayez.");
     }
   }
 

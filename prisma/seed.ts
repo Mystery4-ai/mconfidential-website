@@ -69,7 +69,19 @@ async function main() {
     },
   });
 
-  const adminPassword = await bcrypt.hash("ChangeMe123!", 10);
+  // Seed passwords MUST come from the environment. No plaintext default is
+  // baked into the (public) repo, otherwise anyone reading this file could log
+  // into the admin. `prisma db seed` fails fast if they are not provided.
+  const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD;
+  const seedConsultantPassword = process.env.SEED_CONSULTANT_PASSWORD;
+  if (!seedAdminPassword || !seedConsultantPassword) {
+    throw new Error(
+      "Set SEED_ADMIN_PASSWORD and SEED_CONSULTANT_PASSWORD before seeding. " +
+        "Use strong, unique values — they are the first admin credentials.",
+    );
+  }
+
+  const adminPassword = await bcrypt.hash(seedAdminPassword, 10);
   await db.user.upsert({
     where: { email: "admin@mconfidential.ma" },
     create: {
@@ -82,7 +94,7 @@ async function main() {
     update: {},
   });
 
-  const consultantPassword = await bcrypt.hash("ChangeMe123!", 10);
+  const consultantPassword = await bcrypt.hash(seedConsultantPassword, 10);
   const consultant = await db.user.upsert({
     where: { email: "consultant@mconfidential.ma" },
     create: {
@@ -95,9 +107,9 @@ async function main() {
     update: {},
   });
 
-  console.log("Seeded users:");
-  console.log("  admin@mconfidential.ma / ChangeMe123! (role ADMIN)");
-  console.log("  consultant@mconfidential.ma / ChangeMe123! (role CONSULTANT)");
+  console.log("Seeded users (passwords taken from the environment, not printed):");
+  console.log("  admin@mconfidential.ma (role ADMIN)");
+  console.log("  consultant@mconfidential.ma (role CONSULTANT)");
   console.log("  -> change these passwords immediately after first login.");
 
   let refCounter = 1;

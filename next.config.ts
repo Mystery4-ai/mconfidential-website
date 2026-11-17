@@ -3,9 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      // Property/consultant photo uploads go through Server Actions; the
-      // 1MB default is too small for real camera photos, especially when
-      // uploading several property images in one batch.
+      // Property/consultant photo uploads go through Server Actions; the 1MB
+      // default is too small for real camera photos. This only lifts Next's
+      // own cap: on Vercel a request body over 4.5 MB is refused before it
+      // reaches Next, see src/lib/upload-limits.ts.
       bodySizeLimit: "25mb",
     },
     // The public site is force-dynamic so the server always re-renders with
@@ -61,6 +62,11 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      {
+        // Photos uploaded through the backoffice (see src/lib/storage.ts).
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+      },
       {
         // Seed property photos are hotlinked from the old WordPress site's
         // media library until real images are uploaded through the

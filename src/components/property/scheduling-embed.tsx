@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import CalEmbed, { getCalApi } from "@calcom/embed-react";
+import { VisitCalendar } from "@/components/property/visit-calendar";
 
 function buildCalendlyUrl(url: string, reference: string) {
   try {
@@ -19,7 +18,7 @@ function buildCalendlyUrl(url: string, reference: string) {
   }
 }
 
-/** Extracts the "username/event-type" path Cal.com's embed SDK expects from a full cal.com URL. */
+/** Extracts the "username/event-type" path Cal.com expects from a full cal.com URL. */
 function toCalLink(url: string) {
   try {
     const u = new URL(url);
@@ -40,32 +39,12 @@ export function SchedulingEmbed({
 }) {
   const isCalCom = /(^|\.)cal\.com$/.test(new URL(url, "https://cal.com").hostname || "");
 
-  useEffect(() => {
-    if (!isCalCom) return;
-    (async () => {
-      const cal = await getCalApi();
-      // Cal.com only honors UI config sent through its embed SDK (postMessage
-      // handshake) — plain URL query params on the bare booking page are not
-      // reliably respected, so this is the one way to actually hide the host
-      // name / event description and keep just the calendar + time slots.
-      cal("ui", { hideEventTypeDetails: true, layout: "month_view" });
-    })();
-  }, [isCalCom]);
-
+  // Cal.com : on n'affiche PAS l'embed Cal (qui ouvre d'office le premier jour
+  // et déroule tous ses créneaux, sans branding). On pose notre propre
+  // calendrier au mois, aux couleurs de l'agence, qui passe la main à Cal sur
+  // l'écran de confirmation une fois le créneau choisi.
   if (isCalCom) {
-    // Cal.com's own embed already renders a rounded, self-contained card —
-    // skip our own border/box around it (that created an ugly nested double
-    // box). Don't fight Cal's own auto-resize (it sets the iframe's height
-    // directly based on content, e.g. taller when a day has many slots) with
-    // a fixed height here — that caused it to either leave a blank gap (too
-    // tall) or overflow into the content below (too short).
-    return (
-      <CalEmbed
-        calLink={toCalLink(url)}
-        config={{ layout: "month_view", notes: `Bien ${reference} — ${title}` }}
-        style={{ width: "100%", minHeight: "500px" }}
-      />
-    );
+    return <VisitCalendar calLink={toCalLink(url)} notes={`Bien ${reference} — ${title}`} />;
   }
 
   return (

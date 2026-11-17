@@ -1,7 +1,17 @@
 import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
-import { put, del } from "@vercel/blob";
+import { put, del, BlobError } from "@vercel/blob";
+
+/**
+ * Why the storage refused a file, in words the person uploading can pass on.
+ * Blob messages carry no secret, and without access to the hosting logs they
+ * are the only way to know what went wrong.
+ */
+export function storageFailureReason(err: unknown): string {
+  const detail = err instanceof Error ? err.message.replace(/^Vercel Blob:\s*/, "") : String(err);
+  return err instanceof BlobError ? `stockage : ${detail}` : `erreur : ${detail}`;
+}
 
 /**
  * Property photo storage. Uses Vercel Blob when BLOB_READ_WRITE_TOKEN is
