@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { PropertyCard } from "@/components/property/property-card";
+import { Breadcrumbs, breadcrumbJsonLd } from "@/components/ui/breadcrumbs";
 import { searchProperties, getDistinctCities } from "@/lib/properties";
+import { jsonLdScript, propertyListJsonLd } from "@/lib/json-ld";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
 
 async function resolveCity(encoded: string) {
   const target = decodeURIComponent(encoded);
@@ -37,9 +41,28 @@ export default async function CityPage({
 
   const { items, total } = await searchProperties({ city, page: 1 });
 
+  const breadcrumbItems = [
+    { label: "Accueil", href: "/" },
+    { label: "Biens", href: "/biens" },
+    { label: city },
+  ];
+
   return (
     <Container className="py-16">
-      <h1 className="font-serif text-3xl">Immobilier à {city}</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd(breadcrumbItems, SITE_URL)) }}
+      />
+      {items.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(propertyListJsonLd(items, SITE_URL)) }}
+        />
+      )}
+
+      <Breadcrumbs items={breadcrumbItems} />
+
+      <h1 className="mt-4 font-serif text-3xl">Immobilier à {city}</h1>
       <p className="mt-3 max-w-2xl text-charcoal-soft">
         M. Confidential sélectionne des biens à vendre et à louer à {city}, avec un accompagnement
         personnalisé de la recherche jusqu’à la signature. {total} bien{total > 1 ? "s" : ""}{" "}

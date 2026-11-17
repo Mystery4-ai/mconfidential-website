@@ -5,6 +5,9 @@ import { FilterBar } from "@/components/property/filter-bar";
 import { Pagination } from "@/components/ui/pagination";
 import { Container } from "@/components/layout/container";
 import { PropertyType, TransactionType } from "@prisma/client";
+import { jsonLdScript, propertyListJsonLd } from "@/lib/json-ld";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
 
 type RawParams = Record<string, string | string[] | undefined>;
 
@@ -86,6 +89,13 @@ export default async function PropertiesPage({
 
   return (
     <Container className="py-12">
+      {items.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(propertyListJsonLd(items, SITE_URL)) }}
+        />
+      )}
+
       <div className="mb-8">
         <h1 className="font-serif text-3xl">Nos biens</h1>
         <p className="mt-2 text-sm text-charcoal-soft">
