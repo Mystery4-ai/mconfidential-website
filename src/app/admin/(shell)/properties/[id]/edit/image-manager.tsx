@@ -2,7 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
-import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Trash2, UploadCloud } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { uploadImages, deleteImage, reorderImages } from "../../actions";
 
 type ImageItem = { id: string; url: string; altText: string | null };
@@ -16,7 +17,10 @@ export function ImageManager({
 }) {
   const [items, setItems] = useState(images);
   const [isPending, startTransition] = useTransition();
-  const formRef = useRef<HTMLFormElement>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   function move(index: number, dir: -1 | 1) {
     const target = index + dir;
@@ -34,6 +38,23 @@ export function ImageManager({
     startTransition(() => {
       deleteImage(propertyId, id);
     });
+  }
+
+  async function confirmUpload() {
+    if (files.length === 0) return;
+    setStatus("uploading");
+    setError(null);
+    try {
+      const formData = new FormData();
+      for (const file of files) formData.append("images", file);
+      await uploadImages(propertyId, formData);
+      setStatus("success");
+      setFiles([]);
+      if (inputRef.current) inputRef.current.value = "";
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Échec de l’envoi des photos.");
+    }
   }
 
   return (
@@ -82,28 +103,46 @@ export function ImageManager({
         </div>
       )}
 
-      <form
-        ref={formRef}
-        action={async (formData) => {
-          await uploadImages(propertyId, formData);
-          formRef.current?.reset();
-        }}
-        className="mt-4"
-      >
+      <div className="mt-4 space-y-2.5">
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium tracking-wide text-charcoal-soft">
             Ajouter des photos
           </span>
           <input
+            ref={inputRef}
             type="file"
-            name="images"
             accept="image/*"
             multiple
-            onChange={() => formRef.current?.requestSubmit()}
+            onChange={(e) => {
+              setFiles(Array.from(e.target.files || []));
+              setStatus("idle");
+              setError(null);
+            }}
             className="block w-full text-sm text-charcoal-soft file:mr-4 file:border-0 file:bg-charcoal file:px-4 file:py-2 file:text-sm file:font-medium file:text-ivory"
           />
         </label>
-      </form>
+
+        {files.length > 0 && status !== "success" && (
+          <Button type="button" size="sm" onClick={confirmUpload} disabled={status === "uploading"}>
+            {status === "uploading" ? (
+              <>
+                <Loader2 size={14} className="animate-spin" /> Envoi en cours…
+              </>
+            ) : (
+              <>
+                <UploadCloud size={14} /> Confirmer l’envoi ({files.length})
+              </>
+            )}
+          </Button>
+        )}
+
+        {status === "success" && (
+          <p className="flex items-center gap-1.5 text-xs text-status-published">
+            <CheckCircle2 size={14} /> Photo(s) envoyée(s) et confirmée(s).
+          </p>
+        )}
+        {status === "error" && <p className="text-xs text-status-sold">{error}</p>}
+      </div>
     </div>
   );
 }
