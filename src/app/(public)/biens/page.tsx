@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { searchProperties, getDistinctCities, PropertySearchParams } from "@/lib/properties";
+import {
+  searchProperties,
+  getDistinctCities,
+  PropertySearchParams,
+  AmenityKey,
+  AMENITY_LABELS,
+  SortOption,
+} from "@/lib/properties";
 import { PropertyCard } from "@/components/property/property-card";
 import { FilterBar } from "@/components/property/filter-bar";
 import { Pagination } from "@/components/ui/pagination";
@@ -8,15 +15,21 @@ import { PropertyType, TransactionType } from "@prisma/client";
 import { jsonLdScript, propertyListJsonLd } from "@/lib/json-ld";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mconfidential.ma";
+const SORT_OPTIONS: SortOption[] = ["recent", "price_asc", "price_desc"];
 
 type RawParams = Record<string, string | string[] | undefined>;
 
 function parseParams(raw: RawParams): PropertySearchParams {
   const str = (key: string) => (Array.isArray(raw[key]) ? raw[key][0] : raw[key]) || "";
+  const list = (key: string) => (Array.isArray(raw[key]) ? raw[key] : raw[key] ? [raw[key]] : []);
 
   const transaction = str("transaction");
   const type = str("type");
+  const sort = str("sort");
   const page = parseInt(str("page"), 10);
+  const amenities = list("amenities").filter(
+    (a): a is AmenityKey => a !== undefined && a in AMENITY_LABELS
+  );
 
   return {
     transaction: (["SALE", "RENT"] as const).includes(transaction as TransactionType)
@@ -29,7 +42,14 @@ function parseParams(raw: RawParams): PropertySearchParams {
     neighborhood: str("neighborhood") || undefined,
     minPrice: str("minPrice") ? Number(str("minPrice")) : undefined,
     maxPrice: str("maxPrice") ? Number(str("maxPrice")) : undefined,
+    minSurface: str("minSurface") ? Number(str("minSurface")) : undefined,
+    maxSurface: str("maxSurface") ? Number(str("maxSurface")) : undefined,
     bedrooms: str("bedrooms") ? Number(str("bedrooms")) : undefined,
+    amenities: amenities.length > 0 ? amenities : undefined,
+    // "recent" is the default order, so it's treated as "no sort param" —
+    // keeps /biens and /biens?sort=recent from being two different URLs for
+    // what is otherwise identical content.
+    sort: SORT_OPTIONS.includes(sort as SortOption) && sort !== "recent" ? (sort as SortOption) : undefined,
     page: Number.isFinite(page) && page > 0 ? page : 1,
   };
 }
@@ -37,8 +57,11 @@ function parseParams(raw: RawParams): PropertySearchParams {
 // Shared by the canonical tag and pagination links so a filtered view (e.g.
 // ?city=Casablanca) always declares itself, rather than silently collapsing
 // into a canonical for plain /biens — which told Google every filtered page
-// was a duplicate of the unfiltered one, and it stopped indexing them.
-function buildBiensQueryString(params: PropertySearchParams): string {
+// was a duplicate of the unfiltered one, and it stopped indexing them. Sort
+// order is deliberately excluded from the canonical (passed separately
+// below): a reordered list is the same content, not a distinct page, so
+// every sort variant should canonicalize to the same unsorted URL.
+function buildBiensQueryString(params: PropertySearchParams, includeSort = true): string {
   const qs = new URLSearchParams();
   if (params.transaction) qs.set("transaction", params.transaction);
   if (params.type) qs.set("type", params.type);
@@ -46,7 +69,11 @@ function buildBiensQueryString(params: PropertySearchParams): string {
   if (params.neighborhood) qs.set("neighborhood", params.neighborhood);
   if (params.minPrice) qs.set("minPrice", String(params.minPrice));
   if (params.maxPrice) qs.set("maxPrice", String(params.maxPrice));
+  if (params.minSurface) qs.set("minSurface", String(params.minSurface));
+  if (params.maxSurface) qs.set("maxSurface", String(params.maxSurface));
   if (params.bedrooms) qs.set("bedrooms", String(params.bedrooms));
+  for (const a of params.amenities ?? []) qs.append("amenities", a);
+  if (includeSort && params.sort) qs.set("sort", params.sort);
   if (params.page && params.page > 1) qs.set("page", String(params.page));
   const s = qs.toString();
   return s ? `?${s}` : "";
@@ -68,7 +95,7 @@ export async function generateMetadata({
     description:
       "Parcourez les biens immobiliers disponibles à la vente et à la location avec M. Confidential, agence premium à Casablanca et Dar Bouazza.",
     alternates: {
-      canonical: `/biens${buildBiensQueryString(params)}`,
+      canonical: `/biens${buildBiensQueryString(params, false)}`,
     },
   };
 }

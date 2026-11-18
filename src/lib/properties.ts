@@ -3,6 +3,19 @@ import { Prisma, PropertyType, TransactionType } from "@prisma/client";
 
 export const PAGE_SIZE = 12;
 
+export const AMENITY_LABELS = {
+  pool: "Piscine",
+  garden: "Jardin",
+  terrace: "Terrasse",
+  parking: "Parking",
+  ac: "Climatisation",
+  furnished: "Meublé",
+} as const;
+
+export type AmenityKey = keyof typeof AMENITY_LABELS;
+
+export type SortOption = "recent" | "price_asc" | "price_desc";
+
 export type PropertySearchParams = {
   transaction?: TransactionType;
   type?: PropertyType;
@@ -10,11 +23,61 @@ export type PropertySearchParams = {
   neighborhood?: string;
   minPrice?: number;
   maxPrice?: number;
+  minSurface?: number;
+  maxSurface?: number;
   bedrooms?: number;
+  amenities?: AmenityKey[];
+  sort?: SortOption;
   page?: number;
 };
 
-function buildWhere(params: PropertySearchParams): Prisma.PropertyWhereInput {
+// Feature tags are free text (hand-typed, or scraped by the Mubawab
+// importer) so the same amenity shows up as e.g. "Piscine", "Pool",
+// "Piscine dans le Complexe Résidentiel" — substring matching across
+// French/English variants, rather than an exact-match list that would miss
+// most of them. "furnished" needs the exclusion since the substring also
+// occurs inside "Unfurnished".
+const AMENITY_PATTERNS: Record<AmenityKey, string[]> = {
+  pool: ["%piscine%", "%pool%"],
+  garden: ["%jardin%", "%garden%"],
+  terrace: ["%terrasse%", "%terrace%", "%balcon%", "%balcony%", "%rooftop%"],
+  parking: ["%parking%", "%garage%", "%carpark%"],
+  ac: ["%climatisation%", "%air condition%"],
+  furnished: ["%meublé%", "%meuble%", "%furnished%"],
+};
+
+async function propertyIdsWithAmenity(key: AmenityKey): Promise<string[]> {
+  const patterns = AMENITY_PATTERNS[key];
+  const rows =
+    key === "furnished"
+      ? await db.$queryRaw<{ id: string }[]>`
+          SELECT DISTINCT p.id FROM "Property" p,
+            jsonb_array_elements_text(COALESCE(p.features, '[]'::jsonb)) AS f
+          WHERE p.status = 'PUBLISHED'
+            AND f ILIKE ANY(${patterns}::text[])
+            AND f NOT ILIKE '%unfurnished%'
+        `
+      : await db.$queryRaw<{ id: string }[]>`
+          SELECT DISTINCT p.id FROM "Property" p,
+            jsonb_array_elements_text(COALESCE(p.features, '[]'::jsonb)) AS f
+          WHERE p.status = 'PUBLISHED'
+            AND f ILIKE ANY(${patterns}::text[])
+        `;
+  return rows.map((r) => r.id);
+}
+
+// Checking multiple amenity boxes narrows the search (must have ALL of
+// them), matching how comparable property portals behave — so this
+// intersects the ID sets rather than unioning them.
+async function propertyIdsWithAllAmenities(keys: AmenityKey[]): Promise<string[]> {
+  const idSets = await Promise.all(keys.map(propertyIdsWithAmenity));
+  const [first, ...rest] = idSets.map((ids) => new Set(ids));
+  let result = first;
+  for (const s of rest) result = new Set([...result].filter((id) => s.has(id)));
+  return [...result];
+}
+
+async function buildWhere(params: PropertySearchParams): Promise<Prisma.PropertyWhereInput> {
   const where: Prisma.PropertyWhereInput = { status: "PUBLISHED" };
   if (params.transaction) where.transactionType = params.transaction;
   if (params.type) where.propertyType = params.type;
@@ -31,7 +94,23 @@ function buildWhere(params: PropertySearchParams): Prisma.PropertyWhereInput {
       ...(params.maxPrice ? { lte: params.maxPrice } : {}),
     };
   }
+  if (params.minSurface || params.maxSurface) {
+    where.surfaceArea = {
+      ...(params.minSurface ? { gte: params.minSurface } : {}),
+      ...(params.maxSurface ? { lte: params.maxSurface } : {}),
+    };
+  }
+  if (params.amenities && params.amenities.length > 0) {
+    const ids = await propertyIdsWithAllAmenities(params.amenities);
+    where.id = { in: ids };
+  }
   return where;
+}
+
+function buildOrderBy(sort: SortOption | undefined): Prisma.PropertyOrderByWithRelationInput[] {
+  if (sort === "price_asc") return [{ price: "asc" }];
+  if (sort === "price_desc") return [{ price: "desc" }];
+  return [{ featured: "desc" }, { publishedAt: "desc" }];
 }
 
 const cardSelect = {
@@ -57,13 +136,14 @@ const cardSelect = {
 
 export async function searchProperties(params: PropertySearchParams) {
   const page = Math.max(1, params.page ?? 1);
-  const where = buildWhere(params);
+  const where = await buildWhere(params);
+  const orderBy = buildOrderBy(params.sort);
 
   const [items, total] = await Promise.all([
     db.property.findMany({
       where,
       select: cardSelect,
-      orderBy: [{ featured: "desc" }, { publishedAt: "desc" }],
+      orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
